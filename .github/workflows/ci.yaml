@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "**"
+      - "!bump-version/**"
       - "!dependabot/**"
     tags:
       - 'v[0-9]+\.[0-9]+\.[0-9]+-?**'

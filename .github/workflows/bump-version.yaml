@@ -91,10 +91,11 @@ jobs:
           current=$( sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"$/\1/p' Cargo.toml )
           echo "CURRENT_VERSION=${current}" >> "${GITHUB_ENV}"
       - name: Commit changes
-        # the commit is created with the REST API rather than pushed, so GitHub signs it. The patch is
-        # applied locally only to find the changed files and their modes.
+        # the commit is created with the REST API, as the app's token can't push. The patch is applied
+        # locally only to find the changed files and their modes.
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
           branch="bump-version/${VERSION}"
           api="repos/${GITHUB_REPOSITORY}"
@@ -119,16 +120,20 @@ jobs:
 
           # authored and signed off (DCO) by the user who triggered the workflow, with their GitHub
           # noreply email so the commit is attributed to them without exposing their email address.
-          # The committer is left to GitHub, which creates and signs the commit on their behalf.
+          # Committed by the custodian app's bot, which made the commit on their behalf. The commit is
+          # unsigned, GitHub only signs commits it attributes entirely to the app.
           name=$( gh api "users/${GITHUB_ACTOR}" --jq '.name // .login' )
           name="${name:-${GITHUB_ACTOR}}"
           email="${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+          bot="${APP_SLUG}[bot]"
+          bot_email="$( gh api "users/${bot}" --jq .id )+${bot}@users.noreply.github.com"
           commit=$( jq -n \
             --arg message "$( printf 'Bump version from %s to %s\n\nSigned-off-by: %s <%s>' "${CURRENT_VERSION}" "${VERSION}" "${name}" "${email}" )" \
             --arg tree "${tree}" --arg parent "${base}" --arg name "${name}" --arg email "${email}" \
-            '{message: $message, tree: $tree, parents: [$parent], author: {name: $name, email: $email}}' \
+            --arg bot "${bot}" --arg bot_email "${bot_email}" \
+            '{message: $message, tree: $tree, parents: [$parent], author: {name: $name, email: $email}, committer: {name: $bot, email: $bot_email}}' \
             | gh api --method POST "${api}/git/commits" --input - --jq .sha )
-          gh api "${api}/git/commits/${commit}" --jq '"commit \(.sha) verified: \(.verification.verified) (\(.verification.reason))"'
+          echo "created commit ${commit}"
 
           # points the branch at the commit, replacing the branch left by an earlier run for the same version
           if gh api "${api}/git/ref/heads/${branch}" --silent 2> /dev/null ; then
@@ -148,7 +153,7 @@ jobs:
           gh pr create \
             --base "${GITHUB_REF_NAME}" \
             --head "${branch}" \
-            --title "Bump version to ${VERSION}" \
+            --title "Bump version from \`${CURRENT_VERSION}\` to \`${VERSION}\`" \
             --body "Bumps the wit package and crates from \`${CURRENT_VERSION}\` to \`${VERSION}\`.
 
           Triggered by @${GITHUB_ACTOR} from the [Bump version](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) workflow."
