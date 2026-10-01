@@ -1,9 +1,9 @@
 package componentized:constants-components;
 
 world config {
-    include componentized:constants/config@0.0.0-dev;
+    include componentized:constants/config@0.1.0-dev;
 }
 
 world factory {
-    export componentized:constants/factory@0.0.0-dev;
+    export componentized:constants/factory@0.1.0-dev;
 }
