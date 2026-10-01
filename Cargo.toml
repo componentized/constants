@@ -1,0 +1,70 @@
+[package]
+name = "componentized-constants-cli"
+version.workspace = true
+edition = "2024"
+
+license = "Apache-2.0"
+repository = "https://github.com/componentized/constants"
+description = "Create custom wasm components that export constant values, from the command line"
+include = [
+    "/src",
+    "/README.md",
+    "/NOTICE",
+    "/LICENSE"
+]
+
+[[bin]]
+name = "constants"
+path = "src/main.rs"
+doc = false
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/constants-{ target }{ archive-suffix }"
+bin-dir = "{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.'cfg(windows)']
+pkg-fmt = "zip"
+
+[workspace]
+members = [
+    "components/config",
+    "components/factory",
+    "crates/componentized-constants",
+    "crates/test-harness",
+]
+
+# the version of the cli and library crates, kept in step with the interface package by
+# scripts/bump-interface-version.sh
+[workspace.package]
+version = "0.0.0-dev"
+
+[workspace.dependencies]
+anyhow = "1"
+componentized-constants = { path = "./crates/componentized-constants", version = "0.0.0-dev" }
+futures = { version = "0.3", default-features = false, features = ["executor"] }
+test-harness = { path = "./crates/test-harness" }
+wasmtime = { version = "49", default-features = false, features = ["anyhow", "component-model", "component-model-async", "cranelift", "runtime"] }
+wit-bindgen = "0.62"
+wit-component = "0.259.0"
+wit-parser = "0.259.0"
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { version = "4.6", features = ["derive"] }
+componentized-constants = { workspace = true }
+
+# compiling the factory component in tests is slow with an unoptimized
+# wasmtime. Dependencies are optimized by wildcard, as specs naming wasmtime's
+# crates warn when dev-dependencies aren't resolved, e.g. `cargo install`.
+[profile.dev.package."*"]
+opt-level = 1
+
+# release builds of the wasm components, optimized for size rather than speed as
+# they are published and downloaded. The cli is built with the release profile.
+[profile.component]
+inherits = "release"
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true

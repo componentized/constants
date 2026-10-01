@@ -1,0 +1,16 @@
+package componentized:constants@0.0.0-dev;
+
+world imports {
+    import config-values;
+    import factory;
+    import %u8;
+    import %u16;
+    import %u32;
+    import %u64;
+    import %s8;
+    import %s16;
+    import %s32;
+    import %s64;
+    import %f32;
+    import %f64;
+}

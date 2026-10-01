@@ -1,0 +1,34 @@
+name: Release
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  crates:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # crates.io trusted publishing exchanges a GitHub OIDC token for a short lived crates.io token
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+      - name: Check crate version matches the release
+        # the crates inherit the workspace version
+        run: |
+          tag="${{ github.event.release.tag_name }}"
+          workspace_version=$( sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"$/\1/p' Cargo.toml )
+          if [ "v${workspace_version}" != "${tag}" ] ; then
+            echo "::error::release ${tag} does not match the workspace version ${workspace_version} in Cargo.toml"
+            exit 1
+          fi
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
+      - name: Publish crates
+        # cargo publishes the library before the cli that depends on it
+        run: cargo publish --locked -p componentized-constants -p componentized-constants-cli
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}

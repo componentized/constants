@@ -1,0 +1,14 @@
+/// Constant config values for the `wasi:config/store` interface.
+interface config-values {
+    /// Values to be exposed via the `wasi:config/store` interface.
+    ///
+    /// Either use this interface with custom override values, or duplicate
+    /// this interface updating the default values defined below.
+    /// @value []
+    values: func() -> list<tuple<string, string>>;
+}
+
+world config {
+    import config-values;
+    export wasi:config/store@0.2.0-rc.1;
+}

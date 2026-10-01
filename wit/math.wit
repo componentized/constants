@@ -1,0 +1,86 @@
+/// Common mathematical constants.
+interface math {
+    /// Euler's number (e)
+    /// @value 2.718281828459045
+    e: func() -> f64;
+
+    /// The Euler-Mascheroni constant (γ)
+    /// @value 0.5772156649015329
+    euler-gamma: func() -> f64;
+
+    /// 1/π
+    /// @value 0.3183098861837907
+    frac-n1-pi: func() -> f64;
+
+    /// 1/sqrt(2)
+    /// @value 0.7071067811865476
+    frac-n1-sqrt-n2: func() -> f64;
+
+    /// 2/π
+    /// @value 0.6366197723675814
+    frac-n2-pi: func() -> f64;
+
+    /// 2/sqrt(π)
+    /// @value 1.1283791670955126
+    frac-n2-sqrt-pi: func() -> f64;
+
+    /// π/2
+    /// @value 1.5707963267948966
+    frac-pi-n2: func() -> f64;
+
+    /// π/3
+    /// @value 1.0471975511965979
+    frac-pi-n3: func() -> f64;
+
+    /// π/4
+    /// @value 0.7853981633974483
+    frac-pi-n4: func() -> f64;
+
+    /// π/6
+    /// @value 0.5235987755982989
+    frac-pi-n6: func() -> f64;
+
+    /// π/8
+    /// @value 0.39269908169872414
+    frac-pi-n8: func() -> f64;
+
+    /// The golden ratio (φ)
+    /// @value 1.618033988749895
+    golden-ratio: func() -> f64;
+
+    /// ln(2)
+    /// @value 0.6931471805599453
+    ln-n2: func() -> f64;
+
+    /// ln(10)
+    /// @value 2.302585092994046
+    ln-n10: func() -> f64;
+
+    /// log2(10)
+    /// @value 3.321928094887362
+    log2-n10: func() -> f64;
+
+    /// log2(e)
+    /// @value 1.4426950408889634
+    log2-e: func() -> f64;
+
+    /// log10(2)
+    /// @value 0.3010299956639812
+    log10-n2: func() -> f64;
+
+    /// log10(e)
+    /// @value 0.4342944819032518
+    log10-e: func() -> f64;
+
+    /// Archimedes' constant (π)
+    /// @value 3.141592653589793
+    pi: func() -> f64;
+
+    /// sqrt(2)
+    /// @value 1.4142135623730951
+    sqrt-n2: func() -> f64;
+
+    /// The full circle constant (τ)
+    /// @value 6.283185307179586
+    tau: func() -> f64;
+}

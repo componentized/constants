@@ -1,0 +1,21 @@
+[package]
+name = "factory"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = { workspace = true }
+componentized-constants = { workspace = true }
+semver = { version = "1", default-features = false }
+wit-bindgen = { workspace = true }
+wit-parser = { workspace = true }
+
+[dev-dependencies]
+futures = { workspace = true }
+test-harness = { workspace = true }
+wasmtime = { workspace = true }
+wit-component = { workspace = true }

@@ -1,0 +1,8 @@
+// replaces a subset of the values defined in world.wit
+{
+  version: "2.0.0",
+  constants: {
+    answer: 7,
+    origin: {x: 5, y: 5},
+  },
+}

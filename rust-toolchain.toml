@@ -1,0 +1,6 @@
+[toolchain]
+channel = "1.98"
+components = ["rust-src"]
+targets = [
+    "wasm32-unknown-unknown",
+]

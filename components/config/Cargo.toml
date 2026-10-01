@@ -1,0 +1,17 @@
+[package]
+name = "config"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# without std, which would bring its formatting panic handler
+wit-bindgen = { version = "0.62", default-features = false, features = ["macros", "realloc"] }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+test-harness = { workspace = true }
+wasmtime = { workspace = true }

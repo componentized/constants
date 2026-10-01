@@ -1,0 +1,27 @@
+[package]
+name = "componentized-constants"
+version.workspace = true
+edition = "2024"
+
+license = "Apache-2.0"
+repository = "https://github.com/componentized/constants"
+description = "Create custom wasm components that export constant values"
+readme = "../../README.md"
+# LICENSE and NOTICE link to the files at the root of the repository
+include = [
+    "/src",
+    "/LICENSE",
+    "/NOTICE",
+]
+
+[dependencies]
+anyhow = { workspace = true }
+wasm-encoder = "0.259.0"
+wasm-metadata = "0.259.0"
+wasm-wave = { version = "0.259.0", default-features = false, features = ["std"] }
+wit-component = { workspace = true }
+wit-parser = { workspace = true }
+
+[dev-dependencies]
+test-harness = { workspace = true }
+wasmtime = { workspace = true }

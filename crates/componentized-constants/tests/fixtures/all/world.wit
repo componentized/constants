@@ -1,0 +1,168 @@
+package example:constants;
+
+interface types {
+    record point {
+        x: s32,
+        y: s32,
+    }
+
+    flags permissions {
+        read,
+        write,
+        execute,
+    }
+
+    type port = u16;
+
+    enum level {
+        debug,
+        info,
+        error,
+    }
+}
+
+interface constants {
+    use types.{point, permissions, port, level};
+
+    variant shape {
+        none,
+        circle(f32),
+        square(u64),
+        label(string),
+        polygon(list<point>),
+    }
+
+    type shape-list = list<shape>;
+
+    record profile {
+        name: string,
+        nickname: option<string>,
+        age: option<u8>,
+        origin: option<point>,
+    }
+
+    type name = string;
+    type names = list<name>;
+
+    record server {
+        host: name,
+        port: port,
+        tags: list<string>,
+    }
+
+    /// @value true
+    yes: func() -> bool;
+    /// @value -128
+    small: func() -> s8;
+    /// @value 65535
+    medium: func() -> u16;
+    /// The answer to life, the universe, and everything.
+    ///
+    /// @value 42
+    answer: func() -> u32;
+    /// @value 18446744073709551615
+    big: func() -> u64;
+    /// @value -9223372036854775808
+    negative: func() -> s64;
+    /// @value 1.5
+    pi: func() -> f32;
+    /// @value 0.1
+    e: func() -> f64;
+    /// @value inf
+    infinity: func() -> f64;
+    /// @value '🦀'
+    letter: func() -> char;
+    /// @value "hello, \u{1F30E}"
+    greeting: func() -> string;
+    /// @value ""
+    empty: func() -> string;
+    /// @value 8080
+    http-port: func() -> port;
+    /// @value {y: -2, x: 1}
+    origin: func() -> point;
+    /// @value {read, write}
+    default-permissions: func() -> permissions;
+    /// @value {}
+    no-permissions: func() -> permissions;
+    /// @value [2, 3, 5, 7, 11]
+    primes: func() -> list<u8>;
+    /// @value []
+    nothing: func() -> list<u64>;
+    /// @value [[1.0, 0.0], [0.0, 1.0], []]
+    matrix: func() -> list<list<f64>>;
+    /// @value ["alice", "bob"]
+    users: func() -> names;
+    /// @value ("seconds", 60)
+    pair: func() -> tuple<string, u64>;
+    /// @value (7)
+    single: func() -> tuple<u8>;
+    // TODO make this a `map<string, port>` once maps are supported
+    /// @value [("http", 80), ("https", 443)]
+    ports: func() -> list<tuple<string, port>>;
+    /// Known servers.
+    ///
+    /// @value [
+    ///   {host: "a.example", port: 1, tags: ["x", "y"]},
+    ///   {host: "b.example", port: 2, tags: []},
+    /// ]
+    servers: func() -> list<server>;
+    /// @value [255, 128, 0]
+    rgb: func() -> list<u8, 3>;
+    /// @value [{x: 0, y: 0}, {x: 10, y: 10}]
+    corners: func() -> list<point, 2>;
+    /// @value info
+    log-level: func() -> level;
+    /// @value [debug, error]
+    levels: func() -> list<level>;
+    /// `none` is a WAVE keyword, so the case name is escaped
+    /// @value %none
+    no-shape: func() -> shape;
+    /// @value circle(1.5)
+    circle: func() -> shape;
+    /// @value [
+    ///   square(18446744073709551615),
+    ///   label("hi"),
+    ///   polygon([{x: 0, y: 0}, {x: 1, y: 1}]),
+    ///   %none,
+    /// ]
+    shapes: func() -> shape-list;
+    /// @value some("value")
+    maybe: func() -> option<string>;
+    /// @value none
+    maybe-not: func() -> option<string>;
+    /// `some` may be omitted unless the payload is itself an option
+    /// @value 7
+    bare: func() -> option<u32>;
+    /// @value some(none)
+    nested: func() -> option<option<u8>>;
+    /// @value [1, none, some(3)]
+    sparse: func() -> list<option<u8>>;
+    /// @value [
+    ///   {name: "alice", nickname: "al", age: some(30), origin: {x: 1, y: 2}},
+    ///   // omitted option fields are `none`
+    ///   {name: "bob"},
+    /// ]
+    profiles: func() -> list<profile>;
+    /// @value ok(1)
+    outcome: func() -> result<u32, string>;
+    /// @value err("boom")
+    failure: func() -> result<u32, string>;
+    /// `ok(...)` may be omitted unless the payload is an option or result
+    /// @value 5
+    bare-ok: func() -> result<u32, string>;
+    /// @value ok
+    unit: func() -> result;
+    /// @value err(error)
+    unit-err: func() -> result<_, level>;
+    /// @value [ok({x: 1, y: 1}), err("no")]
+    results: func() -> list<result<point, string>>;
+    /// @value some(ok(1))
+    maybe-result: func() -> option<result<u8>>;
+}
+
+world all {
+    /// The version of these constants.
+    /// @value "1.0.0"
+    export version: func() -> string;
+    export constants;
+}

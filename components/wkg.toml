@@ -1,0 +1,2 @@
+[overrides]
+"componentized:constants" = { path = "../wit" }

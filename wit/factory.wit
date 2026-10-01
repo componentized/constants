@@ -1,0 +1,45 @@
+/// Creates components whose exported functions return constant values.
+interface factory {
+    use componentized:component/types@0.0.0-dev.{component, error};
+    use componentized:component/wit@0.0.0-dev.{wit};
+
+    /// WIT defining the world for the created component to implement.
+    variant wit-source {
+        /// WIT text. Packages the world depends on may be defined inline with
+        /// nested `package ns:name { ... }` blocks.
+        text(string),
+        /// A WIT package encoded as wasm, including its dependencies, e.g. from
+        /// `wasm-tools component wit --wasm` or `wkg build`.
+        encoded(component),
+        /// WIT parsed by `componentized:component/wit#extract`. When
+        /// extracted from a component, rather than a WIT package, the
+        /// component's world is implemented by default.
+        parsed(wit),
+    }
+
+    /// Values replacing those from the WIT. The overrides are a record with
+    /// an optional field per world export. Interface exports are named by the
+    /// interface and hold a nested record with a field per function.
+    variant overrides {
+        /// The record as WAVE source, `//` line comments are allowed.
+        wave(string),
+    }
+
+    /// Creates a component implementing `world` from `wit`.
+    ///
+    /// Every function the world exports must be synchronous, take no
+    /// parameters and return a value. Values can't reach maps, handles,
+    /// futures, streams or error contexts, though result types may include
+    /// them in branches the value doesn't take, e.g. `none` for an
+    /// `option<own<r>>`. Each function's value is a WAVE expression following
+    /// a `@value` tag in its doc comment.
+    ///
+    /// - `world`: the world to implement, required when the WIT package
+    ///   defines more than one world.
+    /// - `overrides`: values replacing those from the WIT.
+    create: async func(
+        wit: wit-source,
+        %world: option<string>,
+        overrides: option<overrides>,
+    ) -> result<component, error>;
+}
