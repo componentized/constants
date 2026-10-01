@@ -1,5 +1,5 @@
 package componentized:constants-component;
 
 world math {
-    export componentized:constants/math@0.1.0-dev;
+    export componentized:constants/math@0.1.0;
 }

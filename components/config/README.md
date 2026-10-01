@@ -6,7 +6,7 @@ Config values for the wasi:config/store interface, served from a list of key val
 
 Imports:
 
-- `componentized:constants/config-values@0.1.0-dev`: the key value pairs to serve, e.g. from a constants component
+- `componentized:constants/config-values@0.1.0`: the key value pairs to serve, e.g. from a constants component
 
 Exports:
 
