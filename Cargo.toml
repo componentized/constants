@@ -41,7 +41,7 @@ version = "0.1.0-dev"
 
 [workspace.dependencies]
 anyhow = "1"
-componentized-constants = { path = "./crates/componentized-constants", version = "0.1.0-dev" }
+componentized-constants = { path = "./crates/componentized-constants" }
 futures = { version = "0.3", default-features = false, features = ["executor"] }
 test-harness = { path = "./crates/test-harness" }
 wasmtime = { version = "49", default-features = false, features = ["anyhow", "component-model", "component-model-async", "cranelift", "runtime"] }

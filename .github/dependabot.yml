@@ -1,18 +1,27 @@
 version: 2
 updates:
-- package-ecosystem: github-actions
-  directory: "/"
-  schedule:
-    interval: daily
-- package-ecosystem: cargo
-  directory: "/"
-  schedule:
-    interval: daily
-- package-ecosystem: cargo
-  directory: "/tools"
-  schedule:
-    interval: daily
-- package-ecosystem: rust-toolchain
-  directory: "/"
-  schedule:
-    interval: daily
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: daily
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: daily
+    groups:
+      wasm-tools:
+        patterns:
+          - wasm-encoder
+          - wasm-metadata
+          - wasm-tools
+          - wasm-wave
+          - wit-component
+          - wit-parser
+  - package-ecosystem: cargo
+    directory: "/tools"
+    schedule:
+      interval: daily
+  - package-ecosystem: rust-toolchain
+    directory: "/"
+    schedule:
+      interval: daily
