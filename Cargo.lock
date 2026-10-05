@@ -220,7 +220,7 @@ dependencies = [
  "wasm-wave",
  "wasmtime",
  "wit-component 0.259.0",
- "wit-parser 0.259.0",
+ "wit-parser 0.260.0",
 ]
 
 [[package]]
@@ -512,7 +512,7 @@ dependencies = [
  "wasmtime",
  "wit-bindgen",
  "wit-component 0.259.0",
- "wit-parser 0.259.0",
+ "wit-parser 0.260.0",
 ]
 
 [[package]]
@@ -1455,6 +1455,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasmparser"
+version = "0.260.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c94519d78304dc4a4bb5925eda6ff153bf06167467cff9233dc9593bae28fdd"
+dependencies = [
+ "bitflags",
+ "indexmap",
+ "semver",
+]
+
+[[package]]
 name = "wasmprinter"
 version = "0.258.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1819,6 +1830,25 @@ dependencies = [
  "serde_json",
  "unicode-ident",
  "wasmparser 0.259.0",
+]
+
+[[package]]
+name = "wit-parser"
+version = "0.260.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3152a979bbe19638bb0655cc919d5a68ba1b7b2258f8f43f7c74430004ae7f5e"
+dependencies = [
+ "anyhow",
+ "hashbrown 0.17.1",
+ "id-arena",
+ "indexmap",
+ "log",
+ "semver",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "unicode-ident",
+ "wasmparser 0.260.0",
 ]
 
 [[package]]
