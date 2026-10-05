@@ -16,9 +16,9 @@ include = [
 
 [dependencies]
 anyhow = { workspace = true }
-wasm-encoder = "0.259.0"
-wasm-metadata = "0.259.0"
-wasm-wave = { version = "0.259.0", default-features = false, features = ["std"] }
+wasm-encoder = "0.261.0"
+wasm-metadata = "0.261.0"
+wasm-wave = { version = "0.261.0", default-features = false, features = ["std"] }
 wit-component = { workspace = true }
 wit-parser = { workspace = true }
 
