@@ -1421,9 +1421,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-wave"
-version = "0.259.0"
+version = "0.260.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "583b7203d031ad7b426e12147042e49bc6abee8dfce21f76ceefcaa4121aae09"
+checksum = "a95c97b7d741570e7b58758b1debddff3d8c714f4266f78a4f5906544ef60ead"
 dependencies = [
  "logos",
  "thiserror",
