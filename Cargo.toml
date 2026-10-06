@@ -37,13 +37,13 @@ members = [
 # the version of the cli and library crates, kept in step with the interface package by
 # scripts/bump-version.sh
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2-dev"
 
 [workspace.dependencies]
 anyhow = "1"
 # published with the cli, the cli requires the library at exactly the same version, kept in step by
 # scripts/bump-version.sh
-componentized-constants = { path = "./crates/componentized-constants", version = "=0.1.1" }
+componentized-constants = { path = "./crates/componentized-constants", version = "=0.1.2-dev" }
 futures = { version = "0.3", default-features = false, features = ["executor"] }
 test-harness = { path = "./crates/test-harness" }
 wasmtime = { version = "49", default-features = false, features = ["anyhow", "component-model", "component-model-async", "cranelift", "runtime"] }
