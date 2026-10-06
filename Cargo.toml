@@ -37,7 +37,7 @@ members = [
 # the version of the cli and library crates, kept in step with the interface package by
 # scripts/bump-version.sh
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1-dev"
 
 [workspace.dependencies]
 anyhow = "1"
