@@ -68,6 +68,14 @@ if ! grep -qF "$workflow_default" "$workflow"; then
     exit 1
 fi
 
+# the cli requires the library at exactly the current version, publishing fails without a version
+# requirement, checked before changing anything
+library_requirement="${LIBRARY} = { path = \"./crates/${LIBRARY}\", version = \"=${old}\" }"
+if ! grep -qxF "$library_requirement" Cargo.toml; then
+    echo "unable to find the ${LIBRARY} requirement on the current version in Cargo.toml, expected: ${library_requirement}" >&2
+    exit 1
+fi
+
 old_re="${old//./\\.}"
 # references to the package or one of its interfaces, an interface named for a keyword is escaped
 # with `%`, e.g. `componentized:constants/%u8@0.1.1-dev`
@@ -93,7 +101,7 @@ fi
 # the version in the [workspace.package] section, inherited by the crates
 perl -pi -e 'if (/^\[workspace\.package\]/ .. /^\[(?!workspace\.package\])/) { s/^version = "[^"]*"/version = "'"${new}"'"/ }' Cargo.toml
 echo "updated the workspace version in Cargo.toml"
-perl -pi -e 's/^(\Q'"${LIBRARY}"'\E = \{.*\bversion = ")[^"]*(")/${1}'"${new}"'${2}/' Cargo.toml
+perl -pi -e 's/^(\Q'"${LIBRARY}"'\E = \{.*\bversion = "=)[^"]*(")/${1}'"${new}"'${2}/' Cargo.toml
 echo "updated the ${LIBRARY} requirement in Cargo.toml"
 
 perl -pi -e 's{^(\s+)\Q'"${workflow_default}"'\E$}{${1}'"${workflow_default/\"${old}\"/\"${new}\"}"'}' "$workflow"
