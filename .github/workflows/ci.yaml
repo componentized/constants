@@ -35,6 +35,10 @@ jobs:
             echo "::error::the workspace version ${workspace_version} in Cargo.toml does not match the interface version ${interface_version}, see scripts/bump-version.sh"
             exit 1
           fi
+      - name: Check crates can be published
+        # the release workflow publishes the crates when a release is published, too late to find a
+        # crate can't be published. The cli is verified against the library being published with it.
+        run: cargo publish --dry-run --locked -p componentized-constants -p componentized-constants-cli
       - name: Build components
         run: make components
       - name: Collect components.tar
