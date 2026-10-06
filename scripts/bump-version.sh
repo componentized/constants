@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Bump the version of the interface package, e.g. componentized:constants, and of the crates.
+# Bump the version of the wit interface package, and of the crates.
 #
-#   scripts/bump-interface-version.sh <new-version>
+#   scripts/bump-version.sh <new-version>
 #
 # Updates the package declaration and every reference to the package in tracked files, then
 # refreshes the generated wit dependencies. The crates share the interface's version: the
@@ -62,7 +62,7 @@ fi
 # the bump-version workflow offers the current version as the default for the next bump, checked
 # before changing anything
 workflow=.github/workflows/bump-version.yaml
-workflow_default="default: \"${old}\" # the current version, kept current by scripts/bump-interface-version.sh"
+workflow_default="default: \"${old}\" # the current version, kept current by scripts/bump-version.sh"
 if ! grep -qF "$workflow_default" "$workflow"; then
     echo "unable to find the current version as the default in ${workflow}, expected: ${workflow_default}" >&2
     exit 1

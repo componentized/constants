@@ -166,13 +166,6 @@ ${COMPONENTS_DIR}/interface.wasm: wit/deps README.md | $(call tool,wkg)
 .PHONY: wit
 wit: wit/deps components/wit/deps
 
-.PHONY: bump-interface-version ## Bump the interface package and crate versions, e.g. INTERFACE_VERSION=0.1.0
-bump-interface-version:
-ifndef INTERFACE_VERSION
-	$(error INTERFACE_VERSION is undefined)
-endif
-	scripts/bump-interface-version.sh $(INTERFACE_VERSION)
-
 # the wit dependencies are fetched rather than committed, see .gitignore
 wit/deps: wkg.toml $(shell find wit -type f -name "*.wit" -not -path "*/deps/*") | $(call tool,wkg)
 	$(WKG) fetch --config $(WKG_CONFIG)
@@ -182,6 +175,8 @@ components/wit/deps: wit/deps components/wkg.toml $(shell find components/wit -t
 
 # sign published components with cosign, `SIGN=false` to push without signing, e.g. to a local registry
 SIGN ?= true
+# append each published file and its image to this file, e.g. `factory.wasm ghcr.io/componentized/constants/factory:0.1.0@sha256:...`
+PUBLISH_LOG ?=
 
 # the files that can be published, e.g. gate.wasm, published from target/components/gate/gate.wasm
 PUBLISH_FILES := interface.wasm $(foreach component,$(filter-out dep-% test-%,$(COMPONENTS)),$(component).wasm $(component).debug.wasm)
@@ -191,49 +186,5 @@ publish: $(addprefix publish-,$(PUBLISH_FILES))
 
 .PHONY: $(addprefix publish-,$(PUBLISH_FILES))
 $(addprefix publish-,$(PUBLISH_FILES)): publish-%: | $(call tool,wkg)
-ifndef VERSION
-	$(error VERSION is undefined)
-endif
-ifndef REPOSITORY
-	$(error REPOSITORY is undefined)
-endif
-	@$(eval FILE := $(@:publish-%=%))
-	@$(eval COMPONENT := $(patsubst %.wasm,%,$(patsubst %.debug.wasm,%,$(FILE))))
-# components are in a directory of their own, the interface is not, e.g. gate/gate.wasm and interface.wasm
-	@$(eval COMPONENT_FILE := $(if $(filter interface.wasm,$(FILE)),$(FILE),$(COMPONENT)/$(FILE)))
-	@$(eval README := ${COMPONENTS_DIR}/$(dir $(COMPONENT_FILE))README.md)
-	@$(eval TITLE := $(if $(filter %.debug.wasm,$(FILE)),$(COMPONENT) (debug),$(COMPONENT)))
-	@$(eval DESCRIPTION := $(shell head -n 3 "$(README)" | tail -n 1))
-	@$(eval REVISION := $(shell git rev-parse HEAD)$(shell git diff --quiet HEAD || echo "+dirty"))
-	@$(eval COMPONENT_VERSION := $(if $(filter %.debug.wasm,$(FILE)),${VERSION}+debug,${VERSION}))
-	@$(eval TAG := $(patsubst v%,%,$(subst +,_,$(COMPONENT_VERSION))))
-	@$(eval IMAGE := $(if $(filter interface.wasm,$(FILE)),${REPOSITORY}:${TAG},${REPOSITORY}/${COMPONENT}:${TAG}))
-
-# a debug build identical to the release build adds nothing, e.g. components without debug info
-	@$(eval SKIP := $(if $(filter %.debug.wasm,$(FILE)),$(shell cmp -s "${COMPONENTS_DIR}/${COMPONENT_FILE}" "${COMPONENTS_DIR}/${COMPONENT}/${COMPONENT}.wasm" && echo true)))
-
-# a failed push is recorded rather than stopping make, so the group is always closed before failing
-	@$(eval FAILED := ${COMPONENTS_DIR}/.publish-${FILE}.failed)
-	@rm -f "${FAILED}"
-
-	@$(if $(SKIP),echo "Not publishing ${FILE} as it is identical to ${COMPONENT}.wasm",echo "::group::${FILE} -> ${IMAGE}")
-	@$(if $(SKIP),exit 0 ;) \
-	set -o pipefail ; \
-	DIGEST=$$( \
-		$(WKG) oci push \
-			--annotation "org.opencontainers.image.title=${TITLE}" \
-			--annotation "org.opencontainers.image.description=${DESCRIPTION}" \
-			--annotation "org.opencontainers.image.version=${COMPONENT_VERSION}" \
-			--annotation "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}.git" \
-			--annotation "org.opencontainers.image.revision=${REVISION}" \
-			--annotation "org.opencontainers.image.licenses=Apache-2.0" \
-			"${IMAGE}" \
-			"${COMPONENTS_DIR}/${COMPONENT_FILE}" \
-			2>&1 \
-			| tee /dev/stderr \
-			| grep -o 'sha256:[a-f0-9]\{64\}' \
-	) && \
-	$(if $(filter true,$(SIGN)),cosign sign --yes "${IMAGE}@$${DIGEST}",echo "Not signing ${IMAGE}@$${DIGEST}, SIGN=${SIGN}") \
-	|| touch "${FAILED}"
-	@$(if $(SKIP),,echo "::endgroup::")
-	@if [ -f "${FAILED}" ] ; then rm -f "${FAILED}" ; echo "Failed to publish ${FILE}" >&2 ; exit 1 ; fi
+	@VERSION="$(VERSION)" REPOSITORY="$(REPOSITORY)" COMPONENTS_DIR="$(COMPONENTS_DIR)" SIGN="$(SIGN)" PUBLISH_LOG="$(PUBLISH_LOG)" \
+		scripts/publish.sh $*
