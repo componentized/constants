@@ -342,7 +342,8 @@ fn create_module(
         "componentized-constants",
         env!("CARGO_PKG_VERSION"),
     );
-    let component_type = metadata::encode(resolve, world, StringEncoding::UTF8, Some(&producers))?;
+    let component_type =
+        metadata::encode(resolve, world, StringEncoding::UTF8, Some(&producers), true)?;
 
     let mut module = Module::new();
     module.section(&types);

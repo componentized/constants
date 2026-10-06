@@ -184,7 +184,7 @@ fn encode(wit: &str) -> Result<Vec<u8>> {
         true => resolve.push_str("input.wit", wit)?,
         false => resolve.push_path(workspace_dir().join(wit))?.0,
     };
-    wit_component::encode(&resolve, pkg)
+    wit_component::encode(&resolve, pkg, true)
 }
 
 const WIT: &str = r#"
