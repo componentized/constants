@@ -8,7 +8,7 @@ use wasmtime::{
     component::{Component, Instance, Linker, Val},
 };
 
-const VALUES_INTERFACE: &str = "componentized:constants/config-values@0.1.1-dev";
+const VALUES_INTERFACE: &str = "componentized:constants/config-values@0.1.1";
 const STORE_INTERFACE: &str = "wasi:config/store@0.2.0-rc.1";
 
 /// An instance of the config component, importing `values` as the config values.

@@ -1,4 +1,4 @@
-package componentized:constants@0.1.1-dev;
+package componentized:constants@0.1.1;
 
 world imports {
     import config-values;
