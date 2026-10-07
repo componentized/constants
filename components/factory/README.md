@@ -11,4 +11,4 @@ Imports:
 
 Exports:
 
-- `componentized:constants/factory@0.1.2-dev`: creates a component implementing a world from its WIT
+- `componentized:constants/factory@0.2.0-dev`: creates a component implementing a world from its WIT

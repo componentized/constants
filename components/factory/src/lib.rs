@@ -1,7 +1,7 @@
 #![cfg_attr(not(test), no_main)]
 
 use crate::{
-    componentized::component::types::{Component, Error},
+    componentized::component::types::{ErrorCode, Wasm},
     exports::componentized::constants::factory::{Guest, Overrides, WitSource},
 };
 use componentized_constants::{create_component, decode_world, parse_world};
@@ -16,10 +16,10 @@ impl Guest for Factory {
         wit: WitSource,
         world: Option<String>,
         overrides: Option<Overrides>,
-    ) -> Result<Component, Error> {
+    ) -> Result<Wasm, ErrorCode> {
         let (resolve, world) = match wit {
-            WitSource::Text(text) => parse_world(&text, world.as_deref()),
-            WitSource::Encoded(bytes) => decode_world(&bytes, world.as_deref()),
+            WitSource::Wit(text) => parse_world(&text, world.as_deref()),
+            WitSource::Wasm(bytes) => decode_world(&bytes, world.as_deref()),
             WitSource::Parsed(wit) => parsed_world(wit, world.as_deref()),
         }
         .map_err(to_error)?;
@@ -44,8 +44,8 @@ fn parsed_world(
     Ok((parsed.resolve, world))
 }
 
-fn to_error(err: anyhow::Error) -> Error {
-    Error::Other(Some(format!("{err:#}")))
+fn to_error(err: anyhow::Error) -> ErrorCode {
+    ErrorCode::Other(Some(format!("{err:#}")))
 }
 
 wit_bindgen::generate!({

@@ -344,6 +344,12 @@ impl Ids {
                 w::FunctionKind::Static(id) => K::Static(self.type_id(id)?),
                 w::FunctionKind::AsyncStatic(id) => K::AsyncStatic(self.type_id(id)?),
                 w::FunctionKind::Constructor(id) => K::Constructor(self.type_id(id)?),
+                w::FunctionKind::Getter => K::Getter,
+                w::FunctionKind::Setter => K::Setter,
+                w::FunctionKind::MethodGetter(id) => K::MethodGetter(self.type_id(id)?),
+                w::FunctionKind::MethodSetter(id) => K::MethodSetter(self.type_id(id)?),
+                w::FunctionKind::StaticGetter(id) => K::StaticGetter(self.type_id(id)?),
+                w::FunctionKind::StaticSetter(id) => K::StaticSetter(self.type_id(id)?),
             },
             params: func
                 .params
