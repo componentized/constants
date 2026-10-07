@@ -17,12 +17,13 @@ RUST_TOOLCHAIN := $(shell sed -n 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.t
 CARGO_INSTALL := $(if $(shell command -v cargo-binstall 2> /dev/null),cargo binstall --no-confirm --disable-telemetry,cargo install)
 
 COMPONENTS = $(sort $(foreach file,$(wildcard $(addprefix components/*/,wit/*.constants.wit *.properties *.wac *.wkg Cargo.toml)),$(word 2,$(subst /, ,$(file)))))
-TOOLS := static-config wac-cli wasm-opt wasm-tools wkg
+TOOLS := static-config tree-sitter-cli wac-cli wasm-opt wasm-tools wkg
 
 # the tools are run by path, make runs simple commands itself rather than with a shell, finding them
 # on the PATH make was started with, not the PATH exported above
 CONSTANTS := $(TOOLS_DIR)/bin/constants
 STATIC_CONFIG := $(TOOLS_DIR)/bin/static-config
+TREE_SITTER := $(TOOLS_DIR)/bin/tree-sitter
 WAC := $(TOOLS_DIR)/bin/wac
 WASM_OPT := $(TOOLS_DIR)/bin/wasm-opt
 WASM_TOOLS := $(TOOLS_DIR)/bin/wasm-tools
@@ -58,7 +59,7 @@ clean-wit:
 	rm -rf wit/deps components/wit/deps components/*/wit/deps
 
 .PHONY: test
-test: components
+test: components test-grammar
 	cargo test --workspace
 
 
@@ -83,6 +84,14 @@ $(call tool,$1):
 endef
 
 $(foreach name,$(TOOLS),$(eval $(call INSTALL_TOOL,$(name))))
+
+# the tree-sitter grammar for `@expression` closures, see grammars/constants-expression/README.md. The parser is generated
+# with tree-sitter's own JavaScript runtime rather than node, then built and tested against its corpus.
+.PHONY: test-grammar ## Test the tree-sitter grammar for expressions
+test-grammar: | $(call tool,tree-sitter-cli)
+	cd grammars/constants-expression && \
+		TREE_SITTER_JS_RUNTIME=native $(TREE_SITTER) generate && \
+		$(TREE_SITTER) test
 
 $(CONSTANTS): Cargo.toml Cargo.lock rust-toolchain.toml $(shell find src crates/componentized-constants -type f)
 	@# forced, make only installs when the sources change, and the binary may belong to another package

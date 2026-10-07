@@ -1,0 +1,3 @@
+# `rnadom`
+
+Pseudorandom number generators.

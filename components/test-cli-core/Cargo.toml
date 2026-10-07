@@ -1,0 +1,22 @@
+[package]
+name = "test-cli-core"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wit-bindgen = { workspace = true }
+
+[build-dependencies]
+wit-parser = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+test-harness = { workspace = true }
+tokio = { version = "1", features = ["rt", "macros"] }
+wasmtime = { workspace = true }
+wasmtime-wasi = "49"

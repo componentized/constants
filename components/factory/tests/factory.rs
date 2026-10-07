@@ -4,7 +4,7 @@
 
 use anyhow::{Context, Result, anyhow, bail};
 use std::sync::OnceLock;
-use test_harness::{built_component, call, workspace_dir};
+use test_harness::{built_component, call, read_streams, read_streams_with, workspace_dir};
 use wasmtime::{
     Config, Engine, Store,
     component::{Component, Linker, Val},
@@ -237,6 +237,59 @@ fn call_config(component: &[u8]) -> Result<Vec<Val>> {
 fn it_creates_components_from_wit_text() -> Result<()> {
     let component = create(Wit::Wit(WIT), Some("config"), None)?.map_err(|e| anyhow!(e))?;
     assert_eq!(call_config(&component)?, vec![string("hello"), point(1, 2)]);
+    Ok(())
+}
+
+#[test]
+fn it_creates_components_returning_streams() -> Result<()> {
+    let wit = "package example:streams;
+        world streams {
+            /// @value [\"a\", \"bc\"]
+            export words: async func() -> stream<string>;
+        }";
+    let component = create(Wit::Wit(wit), None, None)?.map_err(|e| anyhow!(e))?;
+    let words = read_streams::<String>(&component, ("", "words"), 1, 1)?;
+    assert_eq!(words, vec![vec!["a".to_string(), "bc".to_string()]; 2]);
+    Ok(())
+}
+
+#[test]
+fn it_creates_components_generating_streams() -> Result<()> {
+    let wit = "package example:streams;
+        world streams {
+            /// @value [1, 1]
+            /// @expression |a, b| a + b
+            export fibonacci: async func() -> stream<u8>;
+        }";
+    let component = create(Wit::Wit(wit), None, None)?.map_err(|e| anyhow!(e))?;
+    let items = read_streams::<u8>(&component, ("", "fibonacci"), 4, 1)?;
+    let expected = vec![1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233];
+    assert_eq!(items, vec![expected; 2]);
+    Ok(())
+}
+
+#[test]
+fn it_creates_components_generating_streams_from_arguments() -> Result<()> {
+    let wit = "package example:streams;
+        world streams {
+            /// @expression |a, b| a + b
+            export fibonacci: async func(a: u8, b: u8) -> stream<u8>;
+        }";
+    for wit in [Wit::Wit(wit), Wit::Parsed(extract(encode(wit)?)?)] {
+        let component = create(wit, None, None)?.map_err(|e| anyhow!(e))?;
+        let items = read_streams_with::<_, u8>(
+            &component,
+            ("", "fibonacci"),
+            (2u8, 3u8),
+            4,
+            1,
+            usize::MAX,
+        )?;
+        assert_eq!(
+            items,
+            vec![vec![2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233]; 2]
+        );
+    }
     Ok(())
 }
 

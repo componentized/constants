@@ -2,21 +2,27 @@ use anyhow::{Result, bail};
 use wit_parser::{Function, FunctionKind, Handle, Resolve, Type, TypeDefKind};
 
 /// Ensures a function can be implemented as a constant: it must be a
-/// synchronous, freestanding function that takes no parameters and returns a
-/// value.
+/// freestanding function, synchronous or async, that takes no parameters and
+/// returns a value. A function generating a stream with an `@expression` may
+/// take the items the stream starts from as parameters.
 ///
 /// The result type isn't checked here; any type is allowed so long as the
 /// function's value doesn't reach a type that values can't be expressed for,
 /// see [`crate::values`].
 pub fn check_function(func: &Function) -> Result<()> {
-    if !matches!(func.kind, FunctionKind::Freestanding) {
+    crate::docs::check(&func.docs).map_err(|e| e.context(format!("function `{}`", func.name)))?;
+    if !matches!(
+        func.kind,
+        FunctionKind::Freestanding | FunctionKind::AsyncFreestanding
+    ) {
+        bail!("function `{}` must be a freestanding function", func.name);
+    }
+    if !func.params.is_empty() && crate::docs::expression(&func.docs).is_none() {
         bail!(
-            "function `{}` must be a synchronous freestanding function",
+            "function `{}` must not accept parameters, unless it generates a stream from \
+             them with an `@expression`",
             func.name
         );
-    }
-    if !func.params.is_empty() {
-        bail!("function `{}` must not accept parameters", func.name);
     }
     if func.result.is_none() {
         bail!("function `{}` must return a value", func.name);

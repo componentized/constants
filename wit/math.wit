@@ -1,5 +1,6 @@
-/// Common mathematical constants.
+/// Common mathematical constants and sequences.
 interface math {
+
     /// Euler's number (e)
     /// @value 2.718281828459045
     e: func() -> f64;
@@ -83,4 +84,59 @@ interface math {
     /// The full circle constant (τ)
     /// @value 6.283185307179586
     tau: func() -> f64;
+
+    /// Odd numbers. Stream closes when it reaches max int.
+    /// @value [1]
+    /// @expression |v| v + 2
+    odd: async func() -> stream<u64>;
+
+    /// Even numbers. Stream closes when it reaches max int.
+    /// @value [0]
+    /// @expression |v| v + 2
+    even: async func() -> stream<u64>;
+
+    /// Arithmetic sequence. Stream closes when it reaches max int.
+    /// @expression || n + d * $i
+    arithmetic: async func(n: u64, d: u64) -> stream<u64>;
+
+    /// Geometric sequence. Stream closes when it reaches max int.
+    /// @expression || n * r ** $i
+    geometric: async func(n: u64, r: u64) -> stream<u64>;
+
+    /// Fibonacci sequence. Stream closes when it reaches max int.
+    /// @value [1, 1]
+    /// @expression |a, b| a + b
+    fibonacci: async func() -> stream<u64>;
+
+    /// Factorial sequence. Stream closes when it reaches max int.
+    /// @value [1, 1]
+    /// @expression |v| v * $i
+    factorial: async func() -> stream<u64>;
+
+    /// Harmonic sequence. Stream closes when it reaches min-positive.
+    /// @expression || n / ($i + 1) as f64
+    harmonic: async func(n: f64) -> stream<f64>;
+
+    /// Figurate sequence. Stream closes when it reaches max int.
+    /// @expression || $i ** n
+    figurate: async func(n: u64) -> stream<u64>;
+
+    /// Prime numbers, each found by trial division from the previous one.
+    /// Stream closes when it reaches max int.
+    /// @value [2]
+    /// @expression |v| {
+    ///     let mut n = v + 1;
+    ///     let mut d: u64 = 2;
+    ///     while d * d <= n {
+    ///         if n % d == 0 {
+    ///             n += 1;
+    ///             d = 2;
+    ///         } else {
+    ///             d += 1;
+    ///         }
+    ///     }
+    ///     n
+    /// }
+    prime: async func() -> stream<u64>;
+
 }

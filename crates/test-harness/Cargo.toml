@@ -7,4 +7,5 @@ publish = false
 
 [dependencies]
 anyhow = { workspace = true }
+futures = { workspace = true }
 wasmtime = { workspace = true }
