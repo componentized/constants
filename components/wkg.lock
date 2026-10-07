@@ -9,7 +9,7 @@ registry = "componentized.dev"
 [[packages.versions]]
 requirement = "=0.0.0-dev"
 version = "0.0.0-dev"
-digest = "sha256:a286f387e5625023fbc5ec998de7a079e4279cc11fe569e56b443ad9cabbb4de"
+digest = "sha256:2d7677a89ef49bef5d8d20848c431c76208753858f4871929066397d62542af7"
 
 [[packages]]
 name = "wasi:config"

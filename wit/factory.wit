@@ -1,21 +1,7 @@
 /// Creates components whose exported functions return constant values.
 interface factory {
-    use componentized:component/types@0.0.0-dev.{component, error};
-    use componentized:component/wit@0.0.0-dev.{wit};
-
-    /// WIT defining the world for the created component to implement.
-    variant wit-source {
-        /// WIT text. Packages the world depends on may be defined inline with
-        /// nested `package ns:name { ... }` blocks.
-        text(string),
-        /// A WIT package encoded as wasm, including its dependencies, e.g. from
-        /// `wasm-tools component wit --wasm` or `wkg build`.
-        encoded(component),
-        /// WIT parsed by `componentized:component/wit#extract`. When
-        /// extracted from a component, rather than a WIT package, the
-        /// component's world is implemented by default.
-        parsed(wit),
-    }
+    use componentized:component/types@0.0.0-dev.{wasm, error-code};
+    use componentized:component/wit@0.0.0-dev.{wit, wit-source};
 
     /// Values replacing those from the WIT. The overrides are a record with
     /// an optional field per world export. Interface exports are named by the
@@ -41,5 +27,5 @@ interface factory {
         wit: wit-source,
         %world: option<string>,
         overrides: option<overrides>,
-    ) -> result<component, error>;
+    ) -> result<wasm, error-code>;
 }

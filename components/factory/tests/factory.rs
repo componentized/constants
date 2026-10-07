@@ -12,7 +12,7 @@ use wasmtime::{
 
 const TYPES: &str = "componentized:component/types@0.0.0-dev";
 const WIT_INTERFACE: &str = "componentized:component/wit@0.0.0-dev";
-const FACTORY_INTERFACE: &str = "componentized:constants/factory@0.1.2-dev";
+const FACTORY_INTERFACE: &str = "componentized:constants/factory@0.2.0-dev";
 
 fn engine() -> &'static Engine {
     static ENGINE: OnceLock<Engine> = OnceLock::new();
@@ -126,8 +126,8 @@ fn val_bytes(val: Val) -> Result<Vec<u8>> {
 }
 
 enum Wit<'a> {
-    Text(&'a str),
-    Encoded(Vec<u8>),
+    Wit(&'a str),
+    Wasm(Vec<u8>),
     Parsed(Val),
 }
 
@@ -148,8 +148,8 @@ fn create(
         }))
     };
     let wit = match wit {
-        Wit::Text(text) => Val::Variant("text".into(), Some(Box::new(Val::String(text.into())))),
-        Wit::Encoded(bytes) => Val::Variant("encoded".into(), Some(Box::new(bytes_val(bytes)))),
+        Wit::Wit(text) => Val::Variant("wit".into(), Some(Box::new(Val::String(text.into())))),
+        Wit::Wasm(bytes) => Val::Variant("wasm".into(), Some(Box::new(bytes_val(bytes)))),
         Wit::Parsed(wit) => Val::Variant("parsed".into(), Some(Box::new(wit))),
     };
     let result = call_async(
@@ -235,19 +235,15 @@ fn call_config(component: &[u8]) -> Result<Vec<Val>> {
 
 #[test]
 fn it_creates_components_from_wit_text() -> Result<()> {
-    let component = create(Wit::Text(WIT), Some("config"), None)?.map_err(|e| anyhow!(e))?;
+    let component = create(Wit::Wit(WIT), Some("config"), None)?.map_err(|e| anyhow!(e))?;
     assert_eq!(call_config(&component)?, vec![string("hello"), point(1, 2)]);
     Ok(())
 }
 
 #[test]
 fn it_creates_components_from_encoded_wit() -> Result<()> {
-    let component = create(
-        Wit::Encoded(encode(WIT)?),
-        Some("other"),
-        Some("{answer: 7}"),
-    )?
-    .map_err(|e| anyhow!(e))?;
+    let component = create(Wit::Wasm(encode(WIT)?), Some("other"), Some("{answer: 7}"))?
+        .map_err(|e| anyhow!(e))?;
     let actual = call(&component, &[], &[("", "answer")])?;
     assert_eq!(actual, vec![Val::U32(7)]);
     Ok(())
@@ -265,8 +261,7 @@ fn it_creates_components_from_parsed_wit() -> Result<()> {
 fn it_creates_identical_components_from_encoded_and_parsed_wit() -> Result<()> {
     // exercises every supported type, including aliases and imported types
     let encoded = encode("crates/componentized-constants/tests/fixtures/all")?;
-    let from_encoded =
-        create(Wit::Encoded(encoded.clone()), None, None)?.map_err(|e| anyhow!(e))?;
+    let from_encoded = create(Wit::Wasm(encoded.clone()), None, None)?.map_err(|e| anyhow!(e))?;
     let from_parsed =
         create(Wit::Parsed(extract(encoded)?), None, None)?.map_err(|e| anyhow!(e))?;
     assert!(from_encoded == from_parsed, "components differ");
@@ -276,7 +271,7 @@ fn it_creates_identical_components_from_encoded_and_parsed_wit() -> Result<()> {
 #[test]
 fn it_reimplements_the_world_of_a_parsed_component() -> Result<()> {
     // components don't carry docs, so every value comes from the overrides
-    let original = create(Wit::Text(WIT), Some("config"), None)?.map_err(|e| anyhow!(e))?;
+    let original = create(Wit::Wit(WIT), Some("config"), None)?.map_err(|e| anyhow!(e))?;
     let wit = extract(original)?;
     let component = create(
         Wit::Parsed(wit),
@@ -290,17 +285,17 @@ fn it_reimplements_the_world_of_a_parsed_component() -> Result<()> {
 
 #[test]
 fn it_returns_errors() -> Result<()> {
-    let err = create(Wit::Text(WIT), None, None)?.expect_err("multiple worlds");
+    let err = create(Wit::Wit(WIT), None, None)?.expect_err("multiple worlds");
     assert!(err.contains("multiple worlds"), "{err}");
 
     let err =
-        create(Wit::Text(WIT), Some("other"), Some("{answer: -1}"))?.expect_err("invalid override");
+        create(Wit::Wit(WIT), Some("other"), Some("{answer: -1}"))?.expect_err("invalid override");
     assert!(err.contains("invalid override for `answer`"), "{err}");
 
-    let err = create(Wit::Encoded(vec![0, 1, 2]), None, None)?.expect_err("invalid wasm");
+    let err = create(Wit::Wasm(vec![0, 1, 2]), None, None)?.expect_err("invalid wasm");
     assert!(!err.is_empty());
 
-    let original = create(Wit::Text(WIT), Some("config"), None)?.map_err(|e| anyhow!(e))?;
+    let original = create(Wit::Wit(WIT), Some("config"), None)?.map_err(|e| anyhow!(e))?;
     let err = create(Wit::Parsed(extract(original)?), None, None)?.expect_err("missing values");
     assert!(
         err.contains("missing value for `example:factory/constants#greeting`"),
