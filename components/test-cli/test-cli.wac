@@ -1,0 +1,17 @@
+// test-cli-core, with each data interface it imports provided by its component
+package componentized:test-cli;
+
+let math = new local:math { ... };
+let atomics = new local:atomics { ... };
+let random = new local:random { ... };
+let types = new local:types { ... };
+
+let cli = new local:test-cli-core {
+    ...math,
+    ...atomics,
+    ...random,
+    ...types,
+    ...
+};
+
+export cli...;

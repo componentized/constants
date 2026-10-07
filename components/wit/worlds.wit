@@ -7,3 +7,30 @@ world config {
 world factory {
     export componentized:constants/factory@0.2.0-dev;
 }
+
+/// A command calling the functions of the data interfaces, for testing, see
+/// components/test-cli-core.
+world test-cli-core {
+    import componentized:constants/math@0.2.0-dev;
+    import componentized:constants/atomics@0.2.0-dev;
+    import componentized:constants/random@0.2.0-dev;
+    import componentized:constants/%u8@0.2.0-dev;
+    import componentized:constants/%u16@0.2.0-dev;
+    import componentized:constants/%u32@0.2.0-dev;
+    import componentized:constants/%u64@0.2.0-dev;
+    import componentized:constants/%s8@0.2.0-dev;
+    import componentized:constants/%s16@0.2.0-dev;
+    import componentized:constants/%s32@0.2.0-dev;
+    import componentized:constants/%s64@0.2.0-dev;
+    import componentized:constants/%f32@0.2.0-dev;
+    import componentized:constants/%f64@0.2.0-dev;
+
+    import wasi:cli/environment@0.3.0;
+    import wasi:cli/stdin@0.3.0;
+    import wasi:cli/terminal-stdin@0.3.0;
+    import wasi:cli/stdout@0.3.0;
+    import wasi:cli/stderr@0.3.0;
+
+    // an async entry point, so the command can wait for a stream's items
+    export wasi:cli/run@0.3.0;
+}

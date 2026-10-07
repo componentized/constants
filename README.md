@@ -7,6 +7,7 @@ WIT defines the shape of a component, but it can't define values, even ones that
 - [Usage](#usage)
   - [Overrides](#overrides)
   - [Supported types](#supported-types)
+    - [Generated streams](#generated-streams)
   - [Values](#values)
 - [Factory component](#factory-component)
 - [Build](#build)
@@ -97,7 +98,7 @@ Every exported function needs a value from either its `@value` tag or an overrid
 
 ### Supported types
 
-Every exported function must be synchronous, take no parameters, and return a value. Values can be expressed for:
+Every exported function must take no parameters, unless it generates a stream from its arguments, and return a value. Functions may be synchronous or `async`. Values can be expressed for:
 
 - `bool`, `s8`, `s16`, `s32`, `s64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `char` and `string`
 - `list<T>` and fixed-length `list<T, N>`
@@ -111,9 +112,57 @@ Every exported function must be synchronous, take no parameters, and return a va
 
 and type aliases of any of these.
 
-Values can't be expressed for `own`, `borrow`, `stream`, `future` or `error-context`. Result types may still include them, as long as the value doesn't reach them: an `option<own<file>>` can be `none`, a `list<future<u8>>` can be `[]`, a `result<u8, stream<u8>>` can be `ok(1)`, and a variant with a case whose payload is one of these types can use any other case. A value that does reach one is an error.
+A function may also return a `stream<T>` of any of these types, written as a list of the stream's items. A stream with items must be returned by an `async` function, which writes the items as the caller reads them, then closes the stream. An empty stream, `[]`, may be returned by any function. Calling an `async` function that returns a stream needs a runtime with support for the component model's async features, which Wasmtime enables by default.
+
+```wit
+/// @value [1, 1, 2, 3, 5, 8]
+fibonacci: async func() -> stream<u32>;
+```
+
+Values can't be expressed for `own`, `borrow`, `future` or `error-context`, or for a `stream` anywhere but the function's result. Result types may still include them, as long as the value doesn't reach them: an `option<own<file>>` can be `none`, a `list<future<u8>>` can be `[]`, a `result<u8, stream<u8>>` can be `ok(1)`, and a variant with a case whose payload is one of these types can use any other case. A value that does reach one is an error.
 
 `map` isn't supported until WAVE defines a syntax for map values.
+
+#### Generated streams
+
+A stream of integers, floats or `bool` can generate its items with an `@expression`, a Rust closure returning the next item. Its parameters are the stream's previous items, starting from the items `@value` lists:
+
+```wit
+/// @value [1, 1]
+/// @expression |a, b| a + b
+fibonacci: async func() -> stream<u64>;
+```
+
+A function can take arguments, which the expression reads by name, along with `$i`, the position in the stream of the item being generated:
+
+```wit
+/// @expression || n * r ** $i
+geometric: async func(n: u64, r: u64) -> stream<u64>;
+```
+
+Expressions can bind values with `let`, loop with `while` and branch with `if`, e.g. to find each prime by trial division:
+
+```wit
+/// @value [2]
+/// @expression |v| {
+///     let mut n = v + 1;
+///     let mut d: u64 = 2;
+///     while d * d <= n {
+///         if n % d == 0 {
+///             n += 1;
+///             d = 2;
+///         } else {
+///             d += 1;
+///         }
+///     }
+///     n
+/// }
+prime: async func() -> stream<u64>;
+```
+
+A stream ends when its next item can't be represented, as Rust's checked arithmetic would fail, so `fibonacci` ends at the largest Fibonacci number a `u64` holds. Otherwise it's unbounded, writing items until the reader closes it.
+
+[docs/expressions.md](docs/expressions.md) guides writing expressions: the ways to declare a generated stream, the built-in variables, a summary of the syntax, and how types work. [grammars/constants-expression](grammars/constants-expression/README.md) specifies expressions in full, with a tree-sitter grammar for editors and language servers.
 
 ### Values
 

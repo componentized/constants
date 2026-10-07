@@ -30,6 +30,7 @@ pkg-fmt = "zip"
 members = [
     "components/config",
     "components/factory",
+    "components/test-cli-core",
     "crates/componentized-constants",
     "crates/test-harness",
 ]
