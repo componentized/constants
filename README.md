@@ -149,16 +149,16 @@ create: async func(
 ) -> result<component, error>;
 ```
 
-The WIT can be given as `text`, with any packages the world depends on defined inline in nested `package ns:name { ... }` blocks. It can also be given as `encoded`, a WIT package encoded as wasm, e.g. from `wasm-tools component wit --wasm` or `wkg build`, which carries its dependencies with it. Or it can be given as `parsed`, the `wit` record returned by `componentized:component/wit#extract`, e.g. from the [`extract-wit`](https://github.com/componentized/component/tree/main/components/extract-wit) component. `world` works the same as the CLI's `--world` flag, and `overrides` given as `wave(...)` holds the same WAVE as an `--overrides` file. `overrides` is a variant so other ways to give values can be added later.
+The WIT can be given as `text`, with any packages the world depends on defined inline in nested `package ns:name { ... }` blocks. It can also be given as `encoded`, a WIT package encoded as wasm, e.g. from `wasm-tools component wit --wasm` or `wkg build`, which carries its dependencies with it. Or it can be given as `parsed`, the `wit` record returned by `componentized:component/wit#parse`, e.g. from the [`wit-tools`](https://github.com/componentized/component/tree/main/components/wit-tools) component. `world` works the same as the CLI's `--world` flag, and `overrides` given as `wave(...)` holds the same WAVE as an `--overrides` file. `overrides` is a variant so other ways to give values can be added later.
 
 `extract` also accepts components, and so can the factory: when the `parsed` WIT was extracted from a component rather than a WIT package, the factory implements that component's world unless `world` names another one. Components don't carry doc comments, so there are no `@value` tags; every value must come from `overrides`.
 
-The factory imports `componentized:component/types` and `componentized:component/wit`, but only for their types, not their functions, so hosts can satisfy them with empty instances. Hosts must support the component model async ABI and maps; with `wasmtime run`, enable them with `-W component-model-async=y,component-model-map=y`:
+The factory imports `componentized:component/types` and `componentized:component/wit`, but only for their types, not their functions, so hosts can satisfy them with empty instances. Hosts must support the component model async ABI and maps; with `wasmtime run`, enable them with `-W component-model-map=y`:
 
 ```sh
-wasmtime run -W component-model-async=y,component-model-map=y \
-  --invoke 'create(text("package a:b; world w { /// @value 42\n export answer: func() -> u32; }"), none, none)' \
-  lib/factory.wasm
+wasmtime run -W component-model-map=y \
+  --invoke 'create(wit("package a:b; world w { /// @value 42\n export answer: func() -> u32; }"), none, none)' \
+  target/components/factory/factory.wasm
 ```
 
 ## Build
@@ -172,9 +172,9 @@ Prereqs:
 make components
 ```
 
-The build creates each component in [`components`](./components) into `lib`, e.g. the factory at `lib/factory.wasm`, along with `lib/interface.wasm`, the `componentized:constants` WIT package. Each component is also built with debug info, e.g. `lib/factory.debug.wasm`.
+The build creates each component in [`components`](./components) into `target/components`, e.g. the factory at `target/components/factory/factory.wasm`, along with `target/components/interface.wasm`, the `componentized:constants` WIT package. Each component is also built with debug info, e.g. `target/components/factory/factory.debug.wasm`.
 
-To run the tests, which exercise the CLI and the components, using the `extract-wit` component from `componentized:component`, which the build fetches to `lib/dep-extract-wit.wasm`:
+To run the tests, which exercise the CLI and the components, using the `wit-tools` component from `componentized:component`, which the build fetches to `target/components/dep-wit-tools/dep-wit-tools.wasm`:
 
 ```sh
 make test
