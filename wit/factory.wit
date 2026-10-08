@@ -1,7 +1,7 @@
 /// Creates components whose exported functions return constant values.
 interface factory {
-    use componentized:component/types@0.0.0-dev.{wasm, error-code};
-    use componentized:component/wit@0.0.0-dev.{wit, wit-source};
+    use componentized:component/types@0.1.0.{wasm, error-code};
+    use componentized:component/wit@0.1.0.{wit, wit-source};
 
     /// Values replacing those from the WIT. The overrides are a record with
     /// an optional field per world export. Interface exports are named by the

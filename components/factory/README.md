@@ -6,8 +6,8 @@ Create components whose exported functions return constant values, from a WIT wo
 
 Imports:
 
-- `componentized:component/types@0.0.0-dev`: the `component` and `error` types, only types are imported
-- `componentized:component/wit@0.0.0-dev`: the `wit` type for parsed WIT, only types are imported
+- `componentized:component/types@0.1.0`: the `component` and `error` types, only types are imported
+- `componentized:component/wit@0.1.0`: the `wit` type for parsed WIT, only types are imported
 
 Exports:
 

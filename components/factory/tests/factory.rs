@@ -1,5 +1,5 @@
 //! Exercises the factory component built by make into `target/components/factory/factory.wasm`,
-//! along with `target/components/dep-extract-wit/dep-extract-wit.wasm` from
+//! along with `target/components/dep-wit-tools/dep-wit-tools.wasm` from
 //! `componentized:component`, which make also fetches.
 
 use anyhow::{Context, Result, anyhow, bail};
@@ -10,8 +10,8 @@ use wasmtime::{
     component::{Component, Linker, Val},
 };
 
-const TYPES: &str = "componentized:component/types@0.0.0-dev";
-const WIT_INTERFACE: &str = "componentized:component/wit@0.0.0-dev";
+const TYPES: &str = "componentized:component/types@0.1.0";
+const WIT_INTERFACE: &str = "componentized:component/wit@0.1.0";
 const FACTORY_INTERFACE: &str = "componentized:constants/factory@0.2.0-dev";
 
 fn engine() -> &'static Engine {
@@ -48,9 +48,9 @@ fn factory() -> Result<&'static Component> {
     load("factory", &CACHE)
 }
 
-fn extract_wit() -> Result<&'static Component> {
+fn wit_tools() -> Result<&'static Component> {
     static CACHE: OnceLock<Result<Component, String>> = OnceLock::new();
-    load("dep-extract-wit", &CACHE)
+    load("dep-wit-tools", &CACHE)
 }
 
 /// Calls an async exported function, satisfying type-only imports with empty
@@ -165,15 +165,18 @@ fn create(
     }
 }
 
-/// Extracts the WIT from a component or encoded WIT package with
-/// `componentized:component/wit#extract`.
-fn extract(bytes: Vec<u8>) -> Result<Val> {
+/// Parse the WIT from a component or encoded WIT package with
+/// `componentized:component/wit#parse`.
+fn parse(bytes: Vec<u8>) -> Result<Val> {
     let result = call_async(
-        extract_wit()?,
+        wit_tools()?,
         &[TYPES],
         WIT_INTERFACE,
-        "extract",
-        vec![bytes_val(bytes)],
+        "parse",
+        vec![Val::Variant(
+            "wasm".into(),
+            Some(Box::new(bytes_val(bytes))),
+        )],
     )?;
     unwrap_result(result)?.map_err(|e| anyhow!(e))
 }
@@ -251,7 +254,7 @@ fn it_creates_components_from_encoded_wit() -> Result<()> {
 
 #[test]
 fn it_creates_components_from_parsed_wit() -> Result<()> {
-    let wit = extract(encode(WIT)?)?;
+    let wit = parse(encode(WIT)?)?;
     let component = create(Wit::Parsed(wit), Some("config"), None)?.map_err(|e| anyhow!(e))?;
     assert_eq!(call_config(&component)?, vec![string("hello"), point(1, 2)]);
     Ok(())
@@ -262,8 +265,7 @@ fn it_creates_identical_components_from_encoded_and_parsed_wit() -> Result<()> {
     // exercises every supported type, including aliases and imported types
     let encoded = encode("crates/componentized-constants/tests/fixtures/all")?;
     let from_encoded = create(Wit::Wasm(encoded.clone()), None, None)?.map_err(|e| anyhow!(e))?;
-    let from_parsed =
-        create(Wit::Parsed(extract(encoded)?), None, None)?.map_err(|e| anyhow!(e))?;
+    let from_parsed = create(Wit::Parsed(parse(encoded)?), None, None)?.map_err(|e| anyhow!(e))?;
     assert!(from_encoded == from_parsed, "components differ");
     Ok(())
 }
@@ -272,7 +274,7 @@ fn it_creates_identical_components_from_encoded_and_parsed_wit() -> Result<()> {
 fn it_reimplements_the_world_of_a_parsed_component() -> Result<()> {
     // components don't carry docs, so every value comes from the overrides
     let original = create(Wit::Wit(WIT), Some("config"), None)?.map_err(|e| anyhow!(e))?;
-    let wit = extract(original)?;
+    let wit = parse(original)?;
     let component = create(
         Wit::Parsed(wit),
         None,
@@ -296,7 +298,7 @@ fn it_returns_errors() -> Result<()> {
     assert!(!err.is_empty());
 
     let original = create(Wit::Wit(WIT), Some("config"), None)?.map_err(|e| anyhow!(e))?;
-    let err = create(Wit::Parsed(extract(original)?), None, None)?.expect_err("missing values");
+    let err = create(Wit::Parsed(parse(original)?), None, None)?.expect_err("missing values");
     assert!(
         err.contains("missing value for `example:factory/constants#greeting`"),
         "{err}"
