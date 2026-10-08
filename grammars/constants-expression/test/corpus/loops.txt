@@ -1,0 +1,302 @@
+==================================================
+Primes
+==================================================
+
+|p| {
+    let mut n = p + 1;
+    let mut d: u64 = 2;
+    while d * d <= n {
+        if n % d == 0 {
+            n += 1;
+            d = 2;
+        } else {
+            d += 1;
+        }
+    }
+    n
+}
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      (mutable)
+      pattern: (identifier)
+      value: (binary_expression
+        left: (identifier)
+        right: (integer)))
+    (let_declaration
+      (mutable)
+      pattern: (identifier)
+      type: (primitive_type)
+      value: (integer))
+    (while_statement
+      condition: (binary_expression
+        left: (binary_expression
+          left: (identifier)
+          right: (identifier))
+        right: (identifier))
+      body: (block
+        (if_expression
+          condition: (binary_expression
+            left: (binary_expression
+              left: (identifier)
+              right: (identifier))
+            right: (integer))
+          consequence: (block
+            (assignment_statement
+              left: (identifier)
+              right: (integer))
+            (assignment_statement
+              left: (identifier)
+              right: (integer)))
+          alternative: (block
+            (assignment_statement
+              left: (identifier)
+              right: (integer))))))
+    (identifier)))
+
+==================================================
+Compound assignments
+==================================================
+
+|n| { let mut x = n; x -= 1; x *= 2; x /= 3; x %= 4; x <<= 1; x >>= 1; x &= 7; x ^= 1; x |= 8; x }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      (mutable)
+      pattern: (identifier)
+      value: (identifier))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (identifier)))
+
+==================================================
+Wrapping compound assignments
+==================================================
+
+|n| { let mut x = n; x +%= 1; x -%= 2; x *%= 3; x /%= 4; x %%= 5; x <<%= 6; x >>%= 7; x }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      (mutable)
+      pattern: (identifier)
+      value: (identifier))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (identifier)))
+
+==================================================
+If statement without else
+==================================================
+
+|n| { let mut x = n; if x > 1 { x = 1; } x }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      (mutable)
+      pattern: (identifier)
+      value: (identifier))
+    (if_expression
+      condition: (binary_expression
+        left: (identifier)
+        right: (integer))
+      consequence: (block
+        (assignment_statement
+          left: (identifier)
+          right: (integer))))
+    (identifier)))
+
+==================================================
+Else if statements
+==================================================
+
+|n| { let mut x = n; if x < 1 { x = 0; } else if x > 9 { x = 9; } else { x += 1; } x }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      (mutable)
+      pattern: (identifier)
+      value: (identifier))
+    (if_expression
+      condition: (binary_expression
+        left: (identifier)
+        right: (integer))
+      consequence: (block
+        (assignment_statement
+          left: (identifier)
+          right: (integer)))
+      alternative: (if_expression
+        condition: (binary_expression
+          left: (identifier)
+          right: (integer))
+        consequence: (block
+          (assignment_statement
+            left: (identifier)
+            right: (integer)))
+        alternative: (block
+          (assignment_statement
+            left: (identifier)
+            right: (integer)))))
+    (identifier)))
+
+==================================================
+Nested loops
+==================================================
+
+|n| { let mut s = n; while s > 1 { let mut t = s; while t > 0 { t -= 1; } s -= 1; }; s }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      (mutable)
+      pattern: (identifier)
+      value: (identifier))
+    (while_statement
+      condition: (binary_expression
+        left: (identifier)
+        right: (integer))
+      body: (block
+        (let_declaration
+          (mutable)
+          pattern: (identifier)
+          value: (identifier))
+        (while_statement
+          condition: (binary_expression
+            left: (identifier)
+            right: (integer))
+          body: (block
+            (assignment_statement
+              left: (identifier)
+              right: (integer))))
+        (assignment_statement
+          left: (identifier)
+          right: (integer))))
+    (identifier)))
+
+==================================================
+Final if is the value
+==================================================
+
+|n| { let x = n; if x > 1 { x } else { 1 } }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      pattern: (identifier)
+      value: (identifier))
+    (if_expression
+      condition: (binary_expression
+        left: (identifier)
+        right: (integer))
+      consequence: (block
+        (identifier))
+      alternative: (block
+        (integer)))))
+
+==================================================
+Power assignments
+==================================================
+
+|n| { let mut x = n; x **= 2; x **%= 3; x }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      (mutable)
+      pattern: (identifier)
+      value: (identifier))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (assignment_statement
+      left: (identifier)
+      right: (integer))
+    (identifier)))

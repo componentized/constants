@@ -1,0 +1,445 @@
+==================================================
+Multiplication binds tighter than addition
+==================================================
+
+|a, b, c| a + b * c
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (binary_expression
+      left: (identifier)
+      right: (identifier))))
+
+==================================================
+Left associativity
+==================================================
+
+|a, b, c| a - b - c
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (binary_expression
+      left: (identifier)
+      right: (identifier))
+    right: (identifier)))
+
+==================================================
+Shifts below arithmetic
+==================================================
+
+|a, b| a << b + 1
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (binary_expression
+      left: (identifier)
+      right: (integer))))
+
+==================================================
+Bitwise precedence
+==================================================
+
+|a, b, c| a | b ^ c & a
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (binary_expression
+      left: (identifier)
+      right: (binary_expression
+        left: (identifier)
+        right: (identifier)))))
+
+==================================================
+Comparison below bitwise
+==================================================
+
+|a, b| a & 1 == b | 2
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (binary_expression
+      left: (identifier)
+      right: (integer))
+    right: (binary_expression
+      left: (identifier)
+      right: (integer))))
+
+==================================================
+Logical operators
+==================================================
+
+|a, b| a > 1 && b < 2 || a == b
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (binary_expression
+      left: (binary_expression
+        left: (identifier)
+        right: (integer))
+      right: (binary_expression
+        left: (identifier)
+        right: (integer)))
+    right: (binary_expression
+      left: (identifier)
+      right: (identifier))))
+
+==================================================
+Unary operators
+==================================================
+
+|a, b| -a * !b
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (unary_expression
+      operand: (identifier))
+    right: (unary_expression
+      operand: (identifier))))
+
+==================================================
+Nested unary operators
+==================================================
+
+|a| - -a
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (unary_expression
+    operand: (unary_expression
+      operand: (identifier))))
+
+==================================================
+Parentheses
+==================================================
+
+|a, b, c| (a + b) * c
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (parenthesized_expression
+      (binary_expression
+        left: (identifier)
+        right: (identifier)))
+    right: (identifier)))
+
+==================================================
+Remainder and division
+==================================================
+
+|a| a % 7 / 2
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (binary_expression
+      left: (identifier)
+      right: (integer))
+    right: (integer)))
+
+==================================================
+Wrapping operators
+==================================================
+
+|a, b| a +% b *% 3 -% a /% b %% 7
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (binary_expression
+      left: (identifier)
+      right: (binary_expression
+        left: (identifier)
+        right: (integer)))
+    right: (binary_expression
+      left: (binary_expression
+        left: (identifier)
+        right: (identifier))
+      right: (integer))))
+
+==================================================
+Wrapping shifts
+==================================================
+
+|a, b| a <<% b >>% 1
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (binary_expression
+      left: (identifier)
+      right: (identifier))
+    right: (integer)))
+
+==================================================
+Wrapping negation
+==================================================
+
+|a| -%a +% -a
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (unary_expression
+      operand: (identifier))
+    right: (unary_expression
+      operand: (identifier))))
+
+==================================================
+Wrapping and checked operators share a level
+==================================================
+
+|a, b| a + b +% a - b -% a
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (binary_expression
+      left: (binary_expression
+        left: (binary_expression
+          left: (identifier)
+          right: (identifier))
+        right: (identifier))
+      right: (identifier))
+    right: (identifier)))
+
+==================================================
+Wrapping operators without spaces
+==================================================
+
+|a, b| a+%b*%2
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (binary_expression
+      left: (identifier)
+      right: (integer))))
+
+==================================================
+Power
+==================================================
+
+|a, b| a ** b
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (identifier)))
+
+==================================================
+Power binds tighter than multiplication
+==================================================
+
+|a, b| 2 * a ** b
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (integer)
+    right: (binary_expression
+      left: (identifier)
+      right: (identifier))))
+
+==================================================
+Power binds tighter than a unary operator on its left
+==================================================
+
+|a| -a ** 2
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (unary_expression
+    operand: (binary_expression
+      left: (identifier)
+      right: (integer))))
+
+==================================================
+Power is right associative
+==================================================
+
+|a| a ** 2 ** 3
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (binary_expression
+      left: (integer)
+      right: (integer))))
+
+==================================================
+Negative exponent
+==================================================
+
+|a| a ** -1
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (unary_expression
+      operand: (integer))))
+
+==================================================
+Wrapping power
+==================================================
+
+|a| a **% 3
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (integer)))
+
+==================================================
+Power of a method call
+==================================================
+
+|a| a.wrapping_add(1) ** 2
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (method_call
+      receiver: (identifier)
+      method: (identifier)
+      argument: (integer))
+    right: (integer)))

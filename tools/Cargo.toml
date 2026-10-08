@@ -14,6 +14,7 @@ path = "lib.rs"
 
 [dependencies]
 static-config = "=0.2.0"
+tree-sitter-cli = "=0.27.0"
 wac-cli = "=0.12.0"
 wasm-opt = "=0.116.1"
 wasm-tools = "=1.261.0"

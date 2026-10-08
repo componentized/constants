@@ -329,7 +329,8 @@ impl<'a> Layout<'a> {
     /// Values can't be expressed for resources, handles, futures, streams,
     /// error contexts or maps. Types may still contain them, so long as a
     /// value doesn't reach them, e.g. `none` for an `option<own<r>>`, or `[]`
-    /// for a `list<future<u8>>`.
+    /// for a `list<future<u8>>`. A function's result may be a stream, see
+    /// [`crate::streams`].
     fn unsupported(&self, ty: &Type, node: &Node) -> Error {
         // TODO restore map support once WAVE defines a syntax for maps, see the
         // `TypeDefKind::Map` TODOs in `store` and `flatten`
@@ -392,6 +393,32 @@ impl<'a> Layout<'a> {
         let ptr = self.alloc(bytes.len(), 1)?;
         self.write(ptr, bytes);
         Ok((ptr, bytes.len() as u32))
+    }
+
+    /// Stores the items of a stream, written as a list, returning their
+    /// address, count and size.
+    pub fn stream(&mut self, item: &Type, node: &Node) -> Result<(u32, u32, u32)> {
+        let (ptr, len) = self.list(item, node)?;
+        Ok((ptr, len, self.size(item) as u32))
+    }
+
+    /// Streams with items are written by a task that outlives the call, which
+    /// only an async function has.
+    pub fn stream_requires_async(&self, node: &Node) -> Error {
+        self.error(
+            node,
+            "a stream with items must be returned by an async function, e.g. \
+             `async func() -> stream<u8>`",
+        )
+    }
+
+    /// The expression generating a stream's items reads the items before
+    /// them, starting from the listed items.
+    pub fn too_few_items(&self, node: &Node, params: u32) -> Error {
+        self.error(
+            node,
+            &format!("the expression reads the previous {params} items, list at least {params}"),
+        )
     }
 
     fn list(&mut self, elem: &Type, node: &Node) -> Result<(u32, u32)> {
@@ -594,7 +621,7 @@ pub fn parser_error(src: &str, e: ParserError) -> Error {
 }
 
 /// Formats the start of a span as `line:column` (1-based).
-fn position(src: &str, span: Range<usize>) -> String {
+pub(crate) fn position(src: &str, span: Range<usize>) -> String {
     let before = &src[..span.start.min(src.len())];
     let line = before.matches('\n').count() + 1;
     let column = before.rsplit('\n').next().unwrap_or("").chars().count() + 1;

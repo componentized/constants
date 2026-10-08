@@ -1,0 +1,22 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "constants_expression",
+      "camelcase": "ConstantsExpression",
+      "title": "Constants expression",
+      "scope": "source.constants-expression",
+      "file-types": [],
+      "injection-regex": "^constants[_-]expression$",
+      "highlights": "queries/highlights.scm"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "Apache-2.0",
+    "description": "Expressions generating the items of a stream, for componentized constants",
+    "links": {
+      "repository": "https://github.com/componentized/constants"
+    }
+  }
+}

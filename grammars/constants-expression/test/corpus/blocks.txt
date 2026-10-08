@@ -1,0 +1,169 @@
+==================================================
+Block as the body
+==================================================
+
+|n| { n }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (identifier)))
+
+==================================================
+Let bindings
+==================================================
+
+|| { let a = $i; let b: u64 = a * 2; a + b }
+
+---
+
+(closure
+  body: (block
+    (let_declaration
+      pattern: (identifier)
+      value: (index))
+    (let_declaration
+      pattern: (identifier)
+      type: (primitive_type)
+      value: (binary_expression
+        left: (identifier)
+        right: (integer)))
+    (binary_expression
+      left: (identifier)
+      right: (identifier))))
+
+==================================================
+Shadowing
+==================================================
+
+|x| { let x = x ^ x << 13; let x = x ^ x >> 7; x ^ x << 17 }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      pattern: (identifier)
+      value: (binary_expression
+        left: (identifier)
+        right: (binary_expression
+          left: (identifier)
+          right: (integer))))
+    (let_declaration
+      pattern: (identifier)
+      value: (binary_expression
+        left: (identifier)
+        right: (binary_expression
+          left: (identifier)
+          right: (integer))))
+    (binary_expression
+      left: (identifier)
+      right: (binary_expression
+        left: (identifier)
+        right: (integer)))))
+
+==================================================
+Ignored binding
+==================================================
+
+|n| { let _ = n * 2; n }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      value: (binary_expression
+        left: (identifier)
+        right: (integer)))
+    (identifier)))
+
+==================================================
+Nested blocks
+==================================================
+
+|n| { let a = { let b = n; b + 1 }; a }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (block
+    (let_declaration
+      pattern: (identifier)
+      value: (block
+        (let_declaration
+          pattern: (identifier)
+          value: (identifier))
+        (binary_expression
+          left: (identifier)
+          right: (integer))))
+    (identifier)))
+
+==================================================
+SplitMix64
+==================================================
+
+|| {
+    let z = $init.0.wrapping_add($i.wrapping_add(1).wrapping_mul(0x9E3779B97F4A7C15));
+    let z = (z ^ z >> 30).wrapping_mul(0xBF58476D1CE4E5B9);
+    let z = (z ^ z >> 27).wrapping_mul(0x94D049BB133111EB);
+    z ^ z >> 31
+}
+
+---
+
+(closure
+  body: (block
+    (let_declaration
+      pattern: (identifier)
+      value: (method_call
+        receiver: (builtin_field
+          field: (field_index))
+        method: (identifier)
+        argument: (method_call
+          receiver: (method_call
+            receiver: (index)
+            method: (identifier)
+            argument: (integer))
+          method: (identifier)
+          argument: (integer))))
+    (let_declaration
+      pattern: (identifier)
+      value: (method_call
+        receiver: (parenthesized_expression
+          (binary_expression
+            left: (identifier)
+            right: (binary_expression
+              left: (identifier)
+              right: (integer))))
+        method: (identifier)
+        argument: (integer)))
+    (let_declaration
+      pattern: (identifier)
+      value: (method_call
+        receiver: (parenthesized_expression
+          (binary_expression
+            left: (identifier)
+            right: (binary_expression
+              left: (identifier)
+              right: (integer))))
+        method: (identifier)
+        argument: (integer)))
+    (binary_expression
+      left: (identifier)
+      right: (binary_expression
+        left: (identifier)
+        right: (integer)))))
