@@ -17,7 +17,7 @@ RUST_TOOLCHAIN := $(shell sed -n 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.t
 CARGO_INSTALL := $(if $(shell command -v cargo-binstall 2> /dev/null),cargo binstall --no-confirm --disable-telemetry,cargo install)
 
 COMPONENTS = $(sort $(foreach file,$(wildcard $(addprefix components/*/,wit/*.constants.wit *.properties *.wac *.wkg Cargo.toml)),$(word 2,$(subst /, ,$(file)))))
-TOOLS := static-config wac-cli wasm-opt wasm-tools wkg
+TOOLS := componentized-static-config-cli wac-cli wasm-opt wasm-tools wkg
 
 # the tools are run by path, make runs simple commands itself rather than with a shell, finding them
 # on the PATH make was started with, not the PATH exported above
@@ -111,10 +111,10 @@ components/$1/wit/deps: wit/deps components/$1/wkg.toml $(shell find components/
 
 else ifneq ($(wildcard components/$1/$1.properties),)
 
-${COMPONENTS_DIR}/$1/$1.wasm: components/$1/$1.properties ${COMPONENTS_DIR}/$1/README.md | $(call tool,static-config)
+${COMPONENTS_DIR}/$1/$1.wasm: components/$1/$1.properties ${COMPONENTS_DIR}/$1/README.md | $(call tool,componentized-static-config-cli)
 	$(STATIC_CONFIG) -f components/$1/$1.properties -o ${COMPONENTS_DIR}/$1/$1.wasm
 
-${COMPONENTS_DIR}/$1/$1.debug.wasm: components/$1/$1.properties ${COMPONENTS_DIR}/$1/README.md | $(call tool,static-config)
+${COMPONENTS_DIR}/$1/$1.debug.wasm: components/$1/$1.properties ${COMPONENTS_DIR}/$1/README.md | $(call tool,componentized-static-config-cli)
 	$(STATIC_CONFIG) -f components/$1/$1.properties -o ${COMPONENTS_DIR}/$1/$1.debug.wasm
 
 else ifneq ($(wildcard components/$1/$1.wac),)
