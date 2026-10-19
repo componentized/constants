@@ -278,7 +278,7 @@ fn it_creates_components_generating_streams_from_arguments() -> Result<()> {
             /// @expression |a, b| a + b
             export fibonacci: async func(a: u8, b: u8) -> stream<u8>;
         }";
-    for wit in [Wit::Wit(wit), Wit::Parsed(extract(encode(wit)?)?)] {
+    for wit in [Wit::Wit(wit), Wit::Parsed(parse(encode(wit)?)?)] {
         let component = create(wit, None, None)?.map_err(|e| anyhow!(e))?;
         let items = read_streams_with::<_, u8>(
             &component,
