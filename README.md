@@ -235,6 +235,38 @@ The WIT dependencies in each `wit/deps` directory are fetched rather than commit
 make wit
 ```
 
+Individual constants can be tested with the test-cli component. For example:
+
+```sh
+make run cmd='math pi'
+```
+
+```
+3.141592653589793
+```
+
+Streams are returned one item per newline to stdin until the stream completes, or stdin closes:
+
+```sh
+make run cmd='random seeded-random 42'
+```
+
+```
+13679457532755275413
+2949826092126892291
+5139283748462763858
+6349198060258255764
+701532786141963250
+16015981125662989062
+...
+```
+
+To list all constants available:
+
+```sh
+make run cmd=''
+```
+
 ## Community
 
 ### Code of Conduct

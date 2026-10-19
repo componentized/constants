@@ -17,7 +17,7 @@ RUST_TOOLCHAIN := $(shell sed -n 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.t
 CARGO_INSTALL := $(if $(shell command -v cargo-binstall 2> /dev/null),cargo binstall --no-confirm --disable-telemetry,cargo install)
 
 COMPONENTS = $(sort $(foreach file,$(wildcard $(addprefix components/*/,wit/*.constants.wit *.properties *.wac *.wkg Cargo.toml)),$(word 2,$(subst /, ,$(file)))))
-TOOLS := componentized-static-config-cli tree-sitter-cli wac-cli wasm-opt wasm-tools wkg
+TOOLS := componentized-static-config-cli tree-sitter-cli wac-cli wasm-opt wasm-tools wasmtime-cli wkg
 
 # the tools are run by path, make runs simple commands itself rather than with a shell, finding them
 # on the PATH make was started with, not the PATH exported above
@@ -27,6 +27,7 @@ TREE_SITTER := $(TOOLS_DIR)/bin/tree-sitter
 WAC := $(TOOLS_DIR)/bin/wac
 WASM_OPT := $(TOOLS_DIR)/bin/wasm-opt
 WASM_TOOLS := $(TOOLS_DIR)/bin/wasm-tools
+WASMTIME := $(TOOLS_DIR)/bin/wasmtime
 WKG := $(TOOLS_DIR)/bin/wkg
 
 # the wasm features rust enables for wasm32-unknown-unknown, `rustc --print cfg --target
@@ -62,6 +63,9 @@ clean-wit:
 test: components test-grammar
 	cargo test --workspace
 
+.PHONY: run ## Run the test-cli to get a constant value, e.g. `make run cmd="math pi"`
+run: ${COMPONENTS_DIR}/test-cli/test-cli.debug.wasm | $(call tool,wasmtime-cli)
+	@$(WASMTIME) run -Wcomponent-model-map ${COMPONENTS_DIR}/test-cli/test-cli.debug.wasm $(cmd)
 
 tool_version = $(shell sed -n 's/^$(1) = "=\(.*\)"$$/\1/p' tools/Cargo.toml)
 # a stamp naming the version of a tool installed in target/tools/bin, e.g. `wkg@0.16.1`, the binary
