@@ -71,3 +71,13 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 strip = true
+
+# debug builds of the wasm components, optimized enough to keep them small while staying debuggable
+[profile.component-debug]
+inherits = "dev"
+opt-level = 1        # most of the size win; locals mostly still visible
+lto = true
+codegen-units = 1
+incremental = false  # no benefit with one codegen unit
+debug = "full"       # variables and types for lldb, file:line in backtraces
+# kept from dev: debug-assertions, overflow-checks, no strip

@@ -12,6 +12,17 @@ publish = false
 [lib]
 path = "lib.rs"
 
+# the binaries each tool installs, the Makefile runs each by path from a variable named after it,
+# e.g. `$(WASM_TOOLS)` for `wasm-tools`
+[package.metadata.bins]
+componentized-static-config-cli = ["static-config"]
+tree-sitter-cli = ["tree-sitter"]
+wac-cli = ["wac"]
+wasm-opt = ["wasm-opt"]
+wasm-tools = ["wasm-tools"]
+wasmtime-cli = ["wasmtime"]
+wkg = ["wkg"]
+
 [dependencies]
 componentized-static-config-cli = "=0.3.0"
 tree-sitter-cli = "=0.27.0"
