@@ -14,9 +14,11 @@ path = "lib.rs"
 
 [dependencies]
 componentized-static-config-cli = "=0.3.0"
+tree-sitter-cli = "=0.27.0"
 wac-cli = "=0.12.0"
 wasm-opt = "=0.116.1"
 wasm-tools = "=1.262.0"
+wasmtime-cli = "=49.0.3"
 wkg = "=0.16.1"
 
 # not a member of the repository's workspace

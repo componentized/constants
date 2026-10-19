@@ -1,0 +1,123 @@
+==================================================
+One parameter
+==================================================
+
+|n| n + 1
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (integer)))
+
+==================================================
+Two parameters
+==================================================
+
+|a, b| a + b
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (identifier)))
+
+==================================================
+Trailing comma
+==================================================
+
+|a, b,| a
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (identifier))
+
+==================================================
+No parameters
+==================================================
+
+|| 7
+
+---
+
+(closure
+  body: (integer))
+
+==================================================
+No parameters with a space
+==================================================
+
+| | 7
+
+---
+
+(closure
+  body: (integer))
+
+==================================================
+Ignored parameter
+==================================================
+
+|_, b| b
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter)
+    (parameter
+      (identifier)))
+  body: (identifier))
+
+==================================================
+Identifiers with underscores
+==================================================
+
+|_prev, next_1| next_1
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (identifier))
+
+==================================================
+Whitespace and newlines
+==================================================
+
+|a,
+ b|
+  a
+  + b
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (identifier)
+    right: (identifier)))

@@ -12,6 +12,15 @@ version = "0.1.0"
 digest = "sha256:b025920ca99a32febc514636a1dd04d1ad65cb8773d10d8e09a62445106ae90b"
 
 [[packages]]
+name = "wasi:cli"
+registry = "wasi.dev"
+
+[[packages.versions]]
+requirement = "=0.3.0"
+version = "0.3.0"
+digest = "sha256:3a2d58743b67a057f7210b9a73d3b21b34ec7895ffe34d1cb092927307156e40"
+
+[[packages]]
 name = "wasi:config"
 registry = "wasi.dev"
 

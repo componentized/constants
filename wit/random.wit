@@ -1,0 +1,27 @@
+/// Pseudorandom number generators.
+interface random {
+
+    /// Pseudorandom numbers from SplitMix64, each mixed from the seed and its
+    /// position in the stream. The same seed always gives the same numbers.
+    /// Not cryptographically secure. The stream is unbounded.
+    ///
+    /// @expression || {
+    ///     let z = seed +% ($i +% 1) *% 0x9E3779B97F4A7C15;
+    ///     let z = (z ^ z >> 30) *% 0xBF58476D1CE4E5B9;
+    ///     let z = (z ^ z >> 27) *% 0x94D049BB133111EB;
+    ///     z ^ z >> 31
+    /// }
+    seeded-random: async func(seed: u64) -> stream<u64>;
+
+    /// Pseudorandom bytes, each 8 bytes one of `seeded-random`'s numbers for the
+    /// same seed, little endian. Not cryptographically secure. The stream is
+    /// unbounded.
+    ///
+    /// @expression || {
+    ///     let z = seed +% ($i / 8 +% 1) *% 0x9E3779B97F4A7C15;
+    ///     let z = (z ^ z >> 30) *% 0xBF58476D1CE4E5B9;
+    ///     let z = (z ^ z >> 27) *% 0x94D049BB133111EB;
+    ///     (z ^ z >> 31).to_le_bytes()
+    /// }
+    seeded-random-bytes: async func(seed: u64) -> stream<u8>;
+}

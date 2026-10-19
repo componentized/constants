@@ -1,0 +1,73 @@
+==================================================
+Decimal integers
+==================================================
+
+|| 1_000_000
+
+---
+
+(closure
+  body: (integer))
+
+==================================================
+Hex, octal and binary integers
+==================================================
+
+|| 0xff + 0o17 + 0b1010 + 0x_FF_ff
+
+---
+
+(closure
+  body: (binary_expression
+    left: (binary_expression
+      left: (binary_expression
+        left: (integer)
+        right: (integer))
+      right: (integer))
+    right: (integer)))
+
+==================================================
+Floats
+==================================================
+
+|| 1.5 + 1. + 1e3 + 1.5e-3 + 2E+10 + 1_000.000_1
+
+---
+
+(closure
+  body: (binary_expression
+    left: (binary_expression
+      left: (binary_expression
+        left: (binary_expression
+          left: (binary_expression
+            left: (float)
+            right: (float))
+          right: (float))
+        right: (float))
+      right: (float))
+    right: (float)))
+
+==================================================
+Booleans
+==================================================
+
+|| true != false
+
+---
+
+(closure
+  body: (binary_expression
+    left: (boolean)
+    right: (boolean)))
+
+==================================================
+Negative literals
+==================================================
+
+|| -128
+
+---
+
+(closure
+  body: (unary_expression
+    operand: (integer)))

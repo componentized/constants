@@ -1,0 +1,9 @@
+interface atomics {
+    /// Incrementing integers. Stream closes when it reaches max int.
+    /// @expression |v| v + 1
+    incrementer: async func(seed: u64) -> stream<u64>;
+
+    /// Decrementing integers. Stream closes when it reaches zero.
+    /// @expression |v| v - 1
+    decrementer: async func(seed: u64) -> stream<u64>;
+}

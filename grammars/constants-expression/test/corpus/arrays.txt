@@ -1,0 +1,108 @@
+==================================================
+Array literal
+==================================================
+
+|a, b| [a + b, a + b + b]
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter
+      (identifier)))
+  body: (array_expression
+    (binary_expression
+      left: (identifier)
+      right: (identifier))
+    (binary_expression
+      left: (binary_expression
+        left: (identifier)
+        right: (identifier))
+      right: (identifier))))
+
+==================================================
+Trailing comma
+==================================================
+
+|| [$i, $i + 1,]
+
+---
+
+(closure
+  body: (array_expression
+    (index)
+    (binary_expression
+      left: (index)
+      right: (integer))))
+
+==================================================
+Bytes
+==================================================
+
+|| $i.to_le_bytes()
+
+---
+
+(closure
+  body: (method_call
+    receiver: (index)
+    method: (identifier)))
+
+==================================================
+Big endian bytes
+==================================================
+
+|| ($i as u32).to_be_bytes()
+
+---
+
+(closure
+  body: (method_call
+    receiver: (parenthesized_expression
+      (cast_expression
+        value: (index)
+        type: (primitive_type)))
+    method: (identifier)))
+
+==================================================
+Arrays in if branches
+==================================================
+
+|| if $i == 0 { [1, 2] } else { [3, 4] }
+
+---
+
+(closure
+  body: (if_expression
+    condition: (binary_expression
+      left: (index)
+      right: (integer))
+    consequence: (block
+      (array_expression
+        (integer)
+        (integer)))
+    alternative: (block
+      (array_expression
+        (integer)
+        (integer)))))
+
+==================================================
+Array as a block's value
+==================================================
+
+|| { let z = $i *% 3; z.to_le_bytes() }
+
+---
+
+(closure
+  body: (block
+    (let_declaration
+      pattern: (identifier)
+      value: (binary_expression
+        left: (index)
+        right: (integer)))
+    (method_call
+      receiver: (identifier)
+      method: (identifier))))

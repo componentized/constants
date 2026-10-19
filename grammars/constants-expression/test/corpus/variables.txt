@@ -1,0 +1,209 @@
+==================================================
+Seed fields
+==================================================
+
+|| $init.0 + $init.12
+
+---
+
+(closure
+  body: (binary_expression
+    left: (builtin_field
+      field: (field_index))
+    right: (builtin_field
+      field: (field_index))))
+
+==================================================
+Position
+==================================================
+
+|| $i
+
+---
+
+(closure
+  body: (index))
+
+==================================================
+Casts
+==================================================
+
+|n| n as u64 * 2 as u64
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (binary_expression
+    left: (cast_expression
+      value: (identifier)
+      type: (primitive_type))
+    right: (cast_expression
+      value: (integer)
+      type: (primitive_type))))
+
+==================================================
+Chained casts
+==================================================
+
+|| $i as i32 as u8
+
+---
+
+(closure
+  body: (cast_expression
+    value: (cast_expression
+      value: (index)
+      type: (primitive_type))
+    type: (primitive_type)))
+
+==================================================
+Cast binds looser than unary
+==================================================
+
+|n| -n as u8
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (cast_expression
+    value: (unary_expression
+      operand: (identifier))
+    type: (primitive_type)))
+
+==================================================
+Method calls
+==================================================
+
+|n| n.wrapping_mul(3).rotate_left(5)
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (method_call
+    receiver: (method_call
+      receiver: (identifier)
+      method: (identifier)
+      argument: (integer))
+    method: (identifier)
+    argument: (integer)))
+
+==================================================
+Method call on a seed field
+==================================================
+
+|| $init.0.wrapping_add($i)
+
+---
+
+(closure
+  body: (method_call
+    receiver: (builtin_field
+      field: (field_index))
+    method: (identifier)
+    argument: (index)))
+
+==================================================
+Unary binds looser than a method call
+==================================================
+
+|n| -n.wrapping_add(1)
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (unary_expression
+    operand: (method_call
+      receiver: (identifier)
+      method: (identifier)
+      argument: (integer))))
+
+==================================================
+WIT and Rust type names
+==================================================
+
+|n| n as s8 as i8 as f64
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier)))
+  body: (cast_expression
+    value: (cast_expression
+      value: (cast_expression
+        value: (identifier)
+        type: (primitive_type))
+      type: (primitive_type))
+    type: (primitive_type)))
+
+==================================================
+Seed fields by name
+==================================================
+
+|| $init.n * ($init.r ** $i)
+
+---
+
+(closure
+  body: (binary_expression
+    left: (builtin_field
+      field: (identifier))
+    right: (parenthesized_expression
+      (binary_expression
+        left: (builtin_field
+          field: (identifier))
+        right: (index)))))
+
+==================================================
+Seed fields by name and index
+==================================================
+
+|| $init.start_value + $init.1
+
+---
+
+(closure
+  body: (binary_expression
+    left: (builtin_field
+      field: (identifier))
+    right: (builtin_field
+      field: (field_index))))
+
+==================================================
+Call fields
+==================================================
+
+|a, _| { let a: u64 = 0; $call.a + $call.1 + a }
+
+---
+
+(closure
+  parameters: (parameters
+    (parameter
+      (identifier))
+    (parameter))
+  body: (block
+    (let_declaration
+      pattern: (identifier)
+      type: (primitive_type)
+      value: (integer))
+    (binary_expression
+      left: (binary_expression
+        left: (builtin_field
+          field: (identifier))
+        right: (builtin_field
+          field: (field_index)))
+      right: (identifier))))
