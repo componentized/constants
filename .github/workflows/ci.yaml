@@ -140,11 +140,29 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  publish:
-    if: github.event_name == 'push' && ( startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' )
+  # a single check for branch protection to require, rather than each job and matrix entry. It always
+  # runs, a skipped required check counts as passing, and fails when any job it needs did not succeed.
+  ci:
+    if: always()
     needs:
       - build
       - cli
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check jobs succeeded
+        env:
+          RESULTS: ${{ toJSON(needs.*.result) }}
+        run: |
+          echo "results: ${RESULTS}"
+          if jq -e 'any(. != "success")' <<< "${RESULTS}" > /dev/null ; then
+            echo "::error::a required job did not succeed"
+            exit 1
+          fi
+
+  publish:
+    if: github.event_name == 'push' && ( startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' )
+    needs:
+      - ci
     permissions:
       contents: write
       packages: write
