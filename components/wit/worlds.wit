@@ -1,29 +1,29 @@
 package componentized:constants-components;
 
 world config {
-    include componentized:constants/config@0.2.0-dev;
+    include componentized:constants/config@0.2.0;
 }
 
 world factory {
-    export componentized:constants/factory@0.2.0-dev;
+    export componentized:constants/factory@0.2.0;
 }
 
 /// A command calling the functions of the data interfaces, for testing, see
 /// components/test-cli-core.
 world test-cli-core {
-    import componentized:constants/math@0.2.0-dev;
-    import componentized:constants/atomics@0.2.0-dev;
-    import componentized:constants/random@0.2.0-dev;
-    import componentized:constants/%u8@0.2.0-dev;
-    import componentized:constants/%u16@0.2.0-dev;
-    import componentized:constants/%u32@0.2.0-dev;
-    import componentized:constants/%u64@0.2.0-dev;
-    import componentized:constants/%s8@0.2.0-dev;
-    import componentized:constants/%s16@0.2.0-dev;
-    import componentized:constants/%s32@0.2.0-dev;
-    import componentized:constants/%s64@0.2.0-dev;
-    import componentized:constants/%f32@0.2.0-dev;
-    import componentized:constants/%f64@0.2.0-dev;
+    import componentized:constants/math@0.2.0;
+    import componentized:constants/atomics@0.2.0;
+    import componentized:constants/random@0.2.0;
+    import componentized:constants/%u8@0.2.0;
+    import componentized:constants/%u16@0.2.0;
+    import componentized:constants/%u32@0.2.0;
+    import componentized:constants/%u64@0.2.0;
+    import componentized:constants/%s8@0.2.0;
+    import componentized:constants/%s16@0.2.0;
+    import componentized:constants/%s32@0.2.0;
+    import componentized:constants/%s64@0.2.0;
+    import componentized:constants/%f32@0.2.0;
+    import componentized:constants/%f64@0.2.0;
 
     import wasi:cli/environment@0.3.0;
     import wasi:cli/stdin@0.3.0;
