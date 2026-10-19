@@ -42,7 +42,7 @@ jobs:
       - name: Install tools
         run: |
           make tools
-          echo "${PWD}/target/tools/bin" >> "${GITHUB_PATH}"
+          make -s tools-path >> "${GITHUB_PATH}"
       - name: Bump version
         # also fetches the wit dependencies for the new version, and builds and tests the components
         run: scripts/bump-version.sh "${VERSION}"
