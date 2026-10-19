@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # without std, which would bring its formatting panic handler
-wit-bindgen = { version = "0.62", default-features = false, features = ["macros", "realloc"] }
+wit-bindgen = { version = "0.63", default-features = false, features = ["macros", "realloc"] }
 
 [dev-dependencies]
 anyhow = { workspace = true }
