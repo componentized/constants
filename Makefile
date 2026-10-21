@@ -12,6 +12,7 @@ LOCAL_TOOLS := componentized-constants-cli
 include build/build.mk
 
 test: test-grammar
+test-integration: cmd = math pi
 test-integration: run
 
 .PHONY: run ## Run the test-cli to get a constant value, e.g. `make run cmd="math pi"`
