@@ -19,4 +19,4 @@ anyhow = { workspace = true }
 test-harness = { workspace = true }
 tokio = { version = "1", features = ["rt", "macros"] }
 wasmtime = { workspace = true }
-wasmtime-wasi = "49"
+wasmtime-wasi = "50"
