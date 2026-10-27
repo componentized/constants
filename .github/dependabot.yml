@@ -17,6 +17,10 @@ updates:
           - wasm-wave
           - wit-component
           - wit-parser
+      wasmtime:
+        patterns:
+          - "wasmtime"
+          - "wasmtime-*"
   - package-ecosystem: cargo
     directory: "/tools"
     schedule:
