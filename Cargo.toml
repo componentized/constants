@@ -49,8 +49,8 @@ futures = { version = "0.3", default-features = false, features = ["executor"] }
 test-harness = { path = "./crates/test-harness" }
 wasmtime = { version = "50", default-features = false, features = ["anyhow", "component-model", "component-model-async", "cranelift", "runtime"] }
 wit-bindgen = "0.63"
-wit-component = "0.262.0"
-wit-parser = "0.262.0"
+wit-component = "0.263.0"
+wit-parser = "0.263.0"
 
 [dependencies]
 anyhow = { workspace = true }
