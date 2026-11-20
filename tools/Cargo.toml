@@ -20,7 +20,7 @@ wasmtime-cli = ["wasmtime"]
 
 [dependencies]
 tree-sitter-cli = "=0.27.2"
-wasmtime-cli = "=50.0.1"
+wasmtime-cli = "=50.0.2"
 
 # not a member of the repository's workspace
 [workspace]
