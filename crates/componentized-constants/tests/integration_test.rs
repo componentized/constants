@@ -100,11 +100,12 @@ fn it_returns_every_supported_type() -> Result<()> {
         (
             iface,
             "ports",
-            Val::List(vec![
-                Val::Tuple(vec![string("http"), Val::U16(80)]),
-                Val::Tuple(vec![string("https"), Val::U16(443)]),
+            Val::Map(vec![
+                (string("http"), Val::U16(80)),
+                (string("https"), Val::U16(443)),
             ]),
         ),
+        (iface, "no-ports", Val::Map(vec![])),
         (
             iface,
             "servers",
@@ -399,8 +400,6 @@ fn it_rejects_values_reaching_unsupported_types() {
         ("result<u8, alias>", "err(1)", "`alias` (future)"),
         ("r", "{f: [1]}", "`alias` (future)"),
         ("v", "b({f: [1]})", "`alias` (future)"),
-        ("map<string, u8>", "[]", "anonymous map"),
-        ("list<map<string, u8>>", "[[]]", "anonymous map"),
     ] {
         let wit = UNSUPPORTED_WIT.replace("%type", ty);
         let err = build_err(&wit, &format!("{{i: {{f: {value}}}}}"));
@@ -430,7 +429,6 @@ fn it_allows_unsupported_types_in_branches_values_do_not_reach() -> Result<()> {
         ),
         ("v", "a", Val::Variant("a".into(), None)),
         ("option<error-context>", "none", Val::Option(None)),
-        ("option<map<string, u8>>", "none", Val::Option(None)),
         (
             "tuple<u8, option<stream<u8>>>",
             "(1, none)",
@@ -455,6 +453,196 @@ fn it_allows_unsupported_types_in_branches_values_do_not_reach() -> Result<()> {
         .with_context(|| ty.to_string())?;
         assert_eq!(actual, vec![expected], "{ty}");
     }
+    Ok(())
+}
+
+#[test]
+fn it_returns_maps() -> Result<()> {
+    let wit = r#"package a:b;
+        world w {
+            record r { m: map<char, u8> }
+            type keys = map<string, bool>;
+            export by-bool: func() -> map<bool, list<u8>>;
+            export by-u8: func() -> map<u8, string>;
+            export by-s64: func() -> map<s64, s64>;
+            export by-char: func() -> map<char, char>;
+            export by-alias: func() -> keys;
+            export nested: func() -> map<u32, map<char, string>>;
+            export in-record: func() -> r;
+            export in-list: func() -> list<map<u16, u16>>;
+            export empty-record-form: func() -> map<u8, u8>;
+            export flat: async func() -> map<string, u32>;
+        }"#;
+    let overrides = r#"{
+        by-bool: {true: [1, 2], false: []},
+        by-u8: {255: "max", 0: "min"},
+        by-s64: {-9223372036854775808: 1, 9223372036854775807: -1},
+        by-char: {'a': 'b', '🦀': '\u{1F30E}'},
+        by-alias: {"%yes": true, "no": false},
+        nested: {0: {}, 1: {'a': "apple"}},
+        in-record: {m: {'x': 1}},
+        in-list: [{}, {1: 2, 3: 4}],
+        empty-record-form: {:},
+        flat: {"one": 1, "two": 2,},
+    }"#;
+    let component = build(wit, Some(overrides))?;
+    let names = [
+        "by-bool",
+        "by-u8",
+        "by-s64",
+        "by-char",
+        "by-alias",
+        "nested",
+        "in-record",
+        "in-list",
+        "empty-record-form",
+        "flat",
+    ];
+    let calls: Vec<(&str, &str)> = names.iter().map(|n| ("", *n)).collect();
+    let actual = call(&component, &[], &calls)?;
+    let bytes = |b: &[u8]| Val::List(b.iter().copied().map(Val::U8).collect());
+    let expected = vec![
+        Val::Map(vec![
+            (Val::Bool(true), bytes(&[1, 2])),
+            (Val::Bool(false), bytes(&[])),
+        ]),
+        Val::Map(vec![
+            (Val::U8(255), string("max")),
+            (Val::U8(0), string("min")),
+        ]),
+        Val::Map(vec![
+            (Val::S64(i64::MIN), Val::S64(1)),
+            (Val::S64(i64::MAX), Val::S64(-1)),
+        ]),
+        Val::Map(vec![
+            (Val::Char('a'), Val::Char('b')),
+            (Val::Char('🦀'), Val::Char('🌎')),
+        ]),
+        Val::Map(vec![
+            (string("%yes"), Val::Bool(true)),
+            (string("no"), Val::Bool(false)),
+        ]),
+        Val::Map(vec![
+            (Val::U32(0), Val::Map(vec![])),
+            (
+                Val::U32(1),
+                Val::Map(vec![(Val::Char('a'), string("apple"))]),
+            ),
+        ]),
+        Val::Record(vec![(
+            "m".into(),
+            Val::Map(vec![(Val::Char('x'), Val::U8(1))]),
+        )]),
+        Val::List(vec![
+            Val::Map(vec![]),
+            Val::Map(vec![(Val::U16(1), Val::U16(2)), (Val::U16(3), Val::U16(4))]),
+        ]),
+        Val::Map(vec![]),
+        Val::Map(vec![
+            (string("one"), Val::U32(1)),
+            (string("two"), Val::U32(2)),
+        ]),
+    ];
+    for ((name, expected), actual) in names.iter().zip(expected).zip(actual) {
+        assert_eq!(expected, actual, "value for `{name}`");
+    }
+    Ok(())
+}
+
+#[test]
+fn it_merges_duplicate_map_keys() -> Result<()> {
+    // as in WAVE and the component model, the last value wins, keeping the
+    // position of the first entry. Keys are compared by value.
+    let wit = "package a:b;
+        world w {
+            export s: func() -> map<string, u8>;
+            export n: func() -> map<s8, u8>;
+            export b: func() -> map<bool, u8>;
+        }";
+    let overrides = r#"{
+        s: {"a": 1, "b": 2, "\u{61}": 3},
+        n: {0: 1, 1: 2, -0: 3},
+        b: {true: 1, false: 2, true: 3},
+    }"#;
+    let component = build(wit, Some(overrides))?;
+    let actual = call(&component, &[], &[("", "s"), ("", "n"), ("", "b")])?;
+    assert_eq!(
+        actual,
+        vec![
+            Val::Map(vec![(string("a"), Val::U8(3)), (string("b"), Val::U8(2))]),
+            Val::Map(vec![(Val::S8(0), Val::U8(3)), (Val::S8(1), Val::U8(2))]),
+            Val::Map(vec![
+                (Val::Bool(true), Val::U8(3)),
+                (Val::Bool(false), Val::U8(2)),
+            ]),
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn it_rejects_invalid_maps() {
+    for (ty, value, expected) in [
+        ("map<string, u8>", "[]", "invalid value type at 1:5"),
+        ("map<string, u8>", "{a}", "invalid value type at 1:5"),
+        (
+            "map<string, u8>",
+            "{a: 1}",
+            "expected a `string` key, found a label `a` at 1:6",
+        ),
+        ("map<string, u8>", "{1: 1}", "invalid value type at 1:6"),
+        ("map<u8, u8>", "{256: 1}", "expected u8"),
+        ("map<u8, u8>", "{1: 256}", "expected u8"),
+        ("map<bool, u8>", "{%true: 1}", "invalid value type at 1:6"),
+        ("map<char, u8>", "{\"a\": 1}", "invalid value type at 1:6"),
+        (
+            "list<map<u8, u8>>",
+            "[{1: []}]",
+            "invalid value type at 1:10",
+        ),
+    ] {
+        let wit = format!("package a:b; world w {{ export f: func() -> {ty}; }}");
+        let err = build_err(&wit, &format!("{{f: {value}}}"));
+        assert!(
+            err.contains(expected),
+            "{ty} {value}: expected {expected:?} in {err:?}"
+        );
+    }
+}
+
+#[test]
+fn it_overrides_maps_from_a_value() -> Result<()> {
+    let map_ty = Type::map(Type::STRING, Type::U16).context("map type")?;
+    let constants_ty = Type::record([("ports", map_ty.clone())]).context("constants type")?;
+    let overrides_ty =
+        Type::record([("constants", constants_ty.clone())]).context("overrides type")?;
+    let ports = Value::make_map(
+        &map_ty,
+        [
+            (Value::make_string("ssh".into()), Value::make_u16(22)),
+            (Value::make_string("dns".into()), Value::make_u16(53)),
+        ],
+    )?;
+    let overrides = Value::make_record(
+        &overrides_ty,
+        [(
+            "constants",
+            Value::make_record(&constants_ty, [("ports", ports)])?,
+        )],
+    )?;
+    let component = build_with_value(ALL_WIT, &overrides)?;
+    let actual = call(
+        &component,
+        &["example:constants/types"],
+        &[("example:constants/constants", "ports")],
+    )?;
+    assert_eq!(
+        actual,
+        vec![Val::Map(vec![
+            (string("ssh"), Val::U16(22)),
+            (string("dns"), Val::U16(53)),
+        ])]
+    );
     Ok(())
 }
 

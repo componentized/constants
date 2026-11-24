@@ -102,6 +102,7 @@ Every exported function must take no parameters, unless it generates a stream fr
 
 - `bool`, `s8`, `s16`, `s32`, `s64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `char` and `string`
 - `list<T>` and fixed-length `list<T, N>`
+- `map<K, V>`
 - `tuple<...>`
 - `record`
 - `flags`
@@ -121,7 +122,7 @@ fibonacci: async func() -> stream<u32>;
 
 Values can't be expressed for `own`, `borrow`, `future` or `error-context`, or for a `stream` anywhere but the function's result. Result types may still include them, as long as the value doesn't reach them: an `option<own<file>>` can be `none`, a `list<future<u8>>` can be `[]`, a `result<u8, stream<u8>>` can be `ok(1)`, and a variant with a case whose payload is one of these types can use any other case. A value that does reach one is an error.
 
-`map` isn't supported until WAVE defines a syntax for map values.
+A `map` is written as braced entries like a record, with keys written as values of the key type, e.g. `{"http": 80, "https": 443}` for a `map<string, u16>`, `{true: [1], false: []}` for a `map<bool, list<u8>>`, and `{}` for an empty map. As in WAVE and the component model, a duplicate key takes the last value, keeping the position of its first entry. Calling a function that returns a map needs a runtime with support for the component model's maps, which Wasmtime enables with `-W component-model-map=y`.
 
 #### Generated streams
 
