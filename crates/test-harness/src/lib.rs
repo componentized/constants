@@ -46,7 +46,8 @@ pub fn call_with(
     for (interface, name) in calls {
         let func = export(&mut store, &instance, interface, name);
         let mut result = [Val::Bool(false)];
-        func.call(&mut store, &[], &mut result)?;
+        // async-lifted functions can't be called synchronously, `call_async` calls either
+        futures::executor::block_on(func.call_async(&mut store, &[], &mut result))?;
         results.push(result[0].clone());
     }
     Ok(results)
