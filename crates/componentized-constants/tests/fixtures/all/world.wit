@@ -96,9 +96,10 @@ interface constants {
     pair: func() -> tuple<string, u64>;
     /// @value (7)
     single: func() -> tuple<u8>;
-    // TODO make this a `map<string, port>` once maps are supported
-    /// @value [("http", 80), ("https", 443)]
-    ports: func() -> list<tuple<string, port>>;
+    /// @value {"http": 80, "https": 443}
+    ports: func() -> map<string, port>;
+    /// @value {}
+    no-ports: func() -> map<string, port>;
     /// Known servers.
     ///
     /// @value [

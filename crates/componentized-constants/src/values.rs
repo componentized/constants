@@ -1,4 +1,6 @@
 use anyhow::{Error, Result, anyhow, bail};
+use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::ops::Range;
 use wasm_wave::ast::{Node, NodeType};
 use wasm_wave::parser::ParserError;
@@ -14,6 +16,15 @@ pub enum Flat {
     I64(i64),
     F32(u32),
     F64(u64),
+}
+
+/// A map key, compared by value, e.g. `"a"` and `"\u{61}"` are the same key.
+#[derive(PartialEq, Eq, Hash)]
+enum MapKey {
+    Bool(bool),
+    Int(i128),
+    Char(char),
+    String(String),
 }
 
 /// Lays out constant values in linear memory following the canonical ABI.
@@ -200,11 +211,12 @@ impl<'a> Layout<'a> {
                         self.store(ty, payload, addr + offset as u32)?;
                     }
                 }
-                // TODO add map support once WAVE defines a syntax for maps,
-                // they're currently `unsupported`. Maps are stored like a
-                // `list<tuple<k, v>>`, and duplicate keys should be rejected.
-                TypeDefKind::Map(..)
-                | TypeDefKind::Resource
+                TypeDefKind::Map(key, value) => {
+                    let (ptr, len) = self.map(key, value, node)?;
+                    self.write(addr, &ptr.to_le_bytes());
+                    self.write(addr + 4, &len.to_le_bytes());
+                }
+                TypeDefKind::Resource
                 | TypeDefKind::Handle(_)
                 | TypeDefKind::Future(_)
                 | TypeDefKind::Stream(_)
@@ -266,9 +278,10 @@ impl<'a> Layout<'a> {
                     let (ptr, len) = self.list(elem, node)?;
                     out.extend([Flat::I32(ptr as i32), Flat::I32(len as i32)]);
                 }
-                // TODO restore map support once WAVE defines a syntax for maps,
-                // they're currently `unsupported`. Maps flatten like a list, to a
-                // pointer and length.
+                TypeDefKind::Map(key, value) => {
+                    let (ptr, len) = self.map(key, value, node)?;
+                    out.extend([Flat::I32(ptr as i32), Flat::I32(len as i32)]);
+                }
                 TypeDefKind::FixedLengthList(elem, n) => {
                     for value in self.fixed_list(node, *n)? {
                         self.flatten(elem, value, out)?;
@@ -290,8 +303,7 @@ impl<'a> Layout<'a> {
                     let payload = v.cases[index].ty.as_ref().zip(payload);
                     self.flatten_case(&Type::Id(id), (index, payload), out)?;
                 }
-                TypeDefKind::Map(..)
-                | TypeDefKind::Resource
+                TypeDefKind::Resource
                 | TypeDefKind::Handle(_)
                 | TypeDefKind::Future(_)
                 | TypeDefKind::Stream(_)
@@ -326,14 +338,12 @@ impl<'a> Layout<'a> {
         Ok(())
     }
 
-    /// Values can't be expressed for resources, handles, futures, streams,
-    /// error contexts or maps. Types may still contain them, so long as a
+    /// Values can't be expressed for resources, handles, futures, streams or
+    /// error contexts. Types may still contain them, so long as a
     /// value doesn't reach them, e.g. `none` for an `option<own<r>>`, or `[]`
     /// for a `list<future<u8>>`. A function's result may be a stream, see
     /// [`crate::streams`].
     fn unsupported(&self, ty: &Type, node: &Node) -> Error {
-        // TODO restore map support once WAVE defines a syntax for maps, see the
-        // `TypeDefKind::Map` TODOs in `store` and `flatten`
         let ty = dealias(self.resolve, *ty);
         self.error(
             node,
@@ -429,6 +439,81 @@ impl<'a> Layout<'a> {
             self.store(elem, value, ptr + (i * stride) as u32)?;
         }
         Ok((ptr, values.len() as u32))
+    }
+
+    /// Stores the entries of a map like a `list<tuple<key, value>>`, returning
+    /// their address and count. As in WAVE and the component model, the last
+    /// value of a duplicate key wins, in the position of the key's first entry.
+    fn map(&mut self, key: &Type, value: &Type, node: &Node) -> Result<(u32, u32)> {
+        let mut entries: Vec<(&Node, &Node)> = vec![];
+        let mut seen = HashMap::<MapKey, usize>::new();
+        for (k, v) in self.parse(node.as_map())? {
+            match seen.entry(self.map_key(key, k)?) {
+                Entry::Occupied(i) => entries[*i.get()].1 = v,
+                Entry::Vacant(i) => {
+                    i.insert(entries.len());
+                    entries.push((k, v));
+                }
+            }
+        }
+        let types = [*key, *value];
+        let entry = self.sizes.record(&types);
+        let (stride, align) = (entry.size.size_wasm32(), entry.align.align_wasm32());
+        let offsets: Vec<u32> = (self.sizes.field_offsets(&types).into_iter())
+            .map(|(offset, _)| offset.size_wasm32() as u32)
+            .collect();
+        let len = entries.len();
+        let ptr = self.alloc(stride * len, align)?;
+        for (i, (k, v)) in entries.into_iter().enumerate() {
+            let addr = ptr + (i * stride) as u32;
+            match dealias(self.resolve, *key) {
+                Type::Bool => self.write(addr + offsets[0], &[self.bool_key(k)? as u8]),
+                _ => self.store(key, k, addr + offsets[0])?,
+            }
+            self.store(value, v, addr + offsets[1])?;
+        }
+        Ok((ptr, len as u32))
+    }
+
+    /// Checks a map key against the key type, returning its value to compare
+    /// with other keys.
+    fn map_key(&self, ty: &Type, node: &Node) -> Result<MapKey> {
+        let ty = dealias(self.resolve, *ty);
+        // a label key is a record field, unless it's a bool key
+        if node.ty() == NodeType::Label && ty != Type::Bool {
+            return Err(self.error(
+                node,
+                &format!(
+                    "expected a {} key, found a label `{}`",
+                    describe(self.resolve, ty),
+                    &self.src[node.span()]
+                ),
+            ));
+        }
+        Ok(match ty {
+            Type::Bool => MapKey::Bool(self.bool_key(node)?),
+            Type::U8 => MapKey::Int(self.number::<u8>(node)?.into()),
+            Type::S8 => MapKey::Int(self.number::<i8>(node)?.into()),
+            Type::U16 => MapKey::Int(self.number::<u16>(node)?.into()),
+            Type::S16 => MapKey::Int(self.number::<i16>(node)?.into()),
+            Type::U32 => MapKey::Int(self.number::<u32>(node)?.into()),
+            Type::S32 => MapKey::Int(self.number::<i32>(node)?.into()),
+            Type::U64 => MapKey::Int(self.number::<u64>(node)?.into()),
+            Type::S64 => MapKey::Int(self.number::<i64>(node)?.into()),
+            Type::Char => MapKey::Char(self.char(node)?),
+            Type::String => MapKey::String(self.parse(node.as_str(self.src))?.into_owned()),
+            // map keys are validated by wit-parser
+            _ => return Err(self.unsupported(&ty, node)),
+        })
+    }
+
+    /// Bool keys are parsed as labels, `true` or `false`.
+    fn bool_key(&self, node: &Node) -> Result<bool> {
+        match (node.ty(), &self.src[node.span()]) {
+            (NodeType::Label, "true") => Ok(true),
+            (NodeType::Label, "false") => Ok(false),
+            _ => self.parse(node.as_bool()),
+        }
     }
 
     fn fixed_list<'n>(&self, node: &'n Node, n: u32) -> Result<Vec<&'n Node>> {
@@ -580,7 +665,7 @@ fn match_fields<'n>(
     optional: &[bool],
 ) -> Result<Vec<Option<&'n Node>>> {
     let mut values: Vec<Option<&Node>> = vec![None; names.len()];
-    // `{}` parses as an empty set, of flags or map entries, but is also an empty record
+    // `{}` parses as empty flags or an empty map, but is also an empty record
     let fields: Vec<(&str, &Node)> = match node.ty() == NodeType::EmptySet {
         true => vec![],
         false => node

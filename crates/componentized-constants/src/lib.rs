@@ -76,7 +76,7 @@ pub fn decode_world(bytes: &[u8], world: Option<&str>) -> Result<(Resolve, World
 ///
 /// The world may only export functions (directly, or within interfaces) that
 /// take no parameters, synchronous or async. Their values may not reach
-/// resources, handles, futures, streams, error contexts or maps, though the
+/// resources, handles, futures, streams or error contexts, though the
 /// result types may include them in branches the values don't take, e.g.
 /// `none` for an `option<own<r>>`. Types the exports reference from other
 /// interfaces become imports of the resulting component.
