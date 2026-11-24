@@ -580,10 +580,8 @@ fn match_fields<'n>(
     optional: &[bool],
 ) -> Result<Vec<Option<&'n Node>>> {
     let mut values: Vec<Option<&Node>> = vec![None; names.len()];
-    // `{}` parses as empty flags, but is also an empty record
-    let empty =
-        node.ty() == NodeType::Flags && node.as_flags(src).is_ok_and(|mut f| f.next().is_none());
-    let fields: Vec<(&str, &Node)> = match empty {
+    // `{}` parses as an empty set, of flags or map entries, but is also an empty record
+    let fields: Vec<(&str, &Node)> = match node.ty() == NodeType::EmptySet {
         true => vec![],
         false => node
             .as_record(src)

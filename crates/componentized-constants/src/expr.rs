@@ -25,7 +25,7 @@
 //! finite, the item can't be generated and the stream ends.
 
 use anyhow::{Result, anyhow, bail};
-use wasm_encoder::{BlockType, Function, InstructionSink, MemArg, ValType};
+use wasm_encoder::{BlockType, Function, InstructionSink, MemArg, MemArgTarget, ValType};
 use wit_parser::{Resolve, Type};
 
 use crate::streams::{INDEX, SEEDS};
@@ -160,7 +160,8 @@ impl Prim {
         MemArg {
             offset: offset.into(),
             align: self.size().trailing_zeros(),
-            memory_index: 0,
+            target: MemArgTarget::Memory(0),
+            ordering: None,
         }
     }
 
@@ -1922,7 +1923,8 @@ impl Generator {
                 let byte = |offset: u32| MemArg {
                     offset: offset.into(),
                     align: 0,
-                    memory_index: 0,
+                    target: MemArgTarget::Memory(0),
+                    ordering: None,
                 };
                 if *big {
                     // most significant byte first
@@ -2062,7 +2064,8 @@ impl Generator {
                 i.local_get(STATE).i64_load(MemArg {
                     offset: INDEX.into(),
                     align: 3,
-                    memory_index: 0,
+                    target: MemArgTarget::Memory(0),
+                    ordering: None,
                 });
             }
             Expr::Neg(e) => {

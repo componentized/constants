@@ -39,7 +39,7 @@
 
 use wasm_encoder::{
     BlockType, ConstExpr, EntityType, Function, GlobalSection, GlobalType, ImportSection,
-    InstructionSink, MemArg, TypeSection, ValType,
+    InstructionSink, MemArg, MemArgTarget, TypeSection, ValType,
 };
 use wit_parser::{
     LiftLowerAbi, ManglingAndAbi, Resolve, StreamIntrinsic, Type, TypeDefKind, TypeId, WasmImport,
@@ -64,27 +64,32 @@ const COPY_STATUS_MASK: i32 = 0xf;
 const SET: MemArg = MemArg {
     offset: 0,
     align: 2,
-    memory_index: 0,
+    target: MemArgTarget::Memory(0),
+    ordering: None,
 };
 const REMAINING: MemArg = MemArg {
     offset: 4,
     align: 2,
-    memory_index: 0,
+    target: MemArgTarget::Memory(0),
+    ordering: None,
 };
 const FILLED: MemArg = MemArg {
     offset: 8,
     align: 2,
-    memory_index: 0,
+    target: MemArgTarget::Memory(0),
+    ordering: None,
 };
 const WRITTEN: MemArg = MemArg {
     offset: 12,
     align: 2,
-    memory_index: 0,
+    target: MemArgTarget::Memory(0),
+    ordering: None,
 };
 const DONE: MemArg = MemArg {
     offset: 16,
     align: 2,
-    memory_index: 0,
+    target: MemArgTarget::Memory(0),
+    ordering: None,
 };
 /// The position of the next item generated, `$i`.
 pub const INDEX: u32 = 24;
@@ -93,7 +98,8 @@ pub const SEEDS: u32 = 32;
 const INDEX_ARG: MemArg = MemArg {
     offset: INDEX as u64,
     align: 3,
-    memory_index: 0,
+    target: MemArgTarget::Memory(0),
+    ordering: None,
 };
 /// The number of items generated at a time, rounded up to a multiple of the
 /// items each evaluation of the expression generates.
