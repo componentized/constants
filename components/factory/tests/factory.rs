@@ -12,7 +12,7 @@ use wasmtime::{
 
 const TYPES: &str = "componentized:component/types@0.1.1";
 const WIT_INTERFACE: &str = "componentized:component/wit@0.1.1";
-const FACTORY_INTERFACE: &str = "componentized:constants/factory@0.2.1";
+const FACTORY_INTERFACE: &str = "componentized:constants/factory@0.2.2-dev";
 
 fn engine() -> &'static Engine {
     static ENGINE: OnceLock<Engine> = OnceLock::new();
