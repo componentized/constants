@@ -1,5 +1,5 @@
 package componentized:constants-component;
 
 world atomics {
-    export componentized:constants/atomics@0.2.1-dev;
+    export componentized:constants/atomics@0.2.1;
 }
