@@ -10,8 +10,8 @@ use wasmtime::{
     component::{Component, Linker, Val},
 };
 
-const TYPES: &str = "componentized:component/types@0.1.0";
-const WIT_INTERFACE: &str = "componentized:component/wit@0.1.0";
+const TYPES: &str = "componentized:component/types@0.1.1";
+const WIT_INTERFACE: &str = "componentized:component/wit@0.1.1";
 const FACTORY_INTERFACE: &str = "componentized:constants/factory@0.2.1-dev";
 
 fn engine() -> &'static Engine {

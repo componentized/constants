@@ -7,9 +7,9 @@ name = "componentized:component"
 registry = "componentized.dev"
 
 [[packages.versions]]
-requirement = "=0.1.0"
-version = "0.1.0"
-digest = "sha256:b025920ca99a32febc514636a1dd04d1ad65cb8773d10d8e09a62445106ae90b"
+requirement = "=0.1.1"
+version = "0.1.1"
+digest = "sha256:834ab2662bcbdfda846251feca738783489823ace416c9993a7c09a9bd11a39d"
 
 [[packages]]
 name = "wasi:config"

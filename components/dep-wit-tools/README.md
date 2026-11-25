@@ -6,8 +6,8 @@ The [`wit-tools`](https://github.com/componentized/component/tree/main/component
 
 Imports:
 
-- `componentized:component/types@0.1.0`: the `wasm` and `error-code` types
+- `componentized:component/types@0.1.1`: the `wasm` and `error-code` types
 
 Exports:
 
-- `componentized:component/wit@0.1.0`: extracts the WIT from a WIT package or component
+- `componentized:component/wit@0.1.1`: extracts the WIT from a WIT package or component
